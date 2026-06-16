@@ -102,6 +102,7 @@
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus';
+import { ElButton, ElInput, ElPagination, ElText, ElTooltip } from 'element-plus';
 import { SearchTableProps } from './types';
 import ProTable from '../ProTable/index.vue';
 import { ApplyFilterPayload, CellEditPayload, TableRow } from '../ProTable/types';
@@ -112,6 +113,20 @@ import { SelectionStore } from './SelectionStore';
 import { useDelayedRef } from '../hooks/useDelayedRef';
 import { useTableSort } from './useTableSort';
 import { ProTableInstance } from '../ProTable';
+import {
+    computed,
+    ref,
+    reactive,
+    nextTick,
+    watch,
+    onMounted,
+    onUnmounted,
+    useTemplateRef,
+} from 'vue';
+import IconRiSearchLine from '~icons/ri/search-line';
+import IconRiAddLine from '~icons/ri/add-line';
+import IconRiDeleteBinLine from '~icons/ri/delete-bin-line';
+import IconRiDeleteBack2Line from '~icons/ri/delete-back2-line';
 
 const props = withDefaults(defineProps<SearchTableProps>(), {
     showSearch: true,

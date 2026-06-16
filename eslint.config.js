@@ -6,22 +6,10 @@ import eslintJs from '@eslint/js';
 import globals from 'globals';
 import vueParser from 'vue-eslint-parser';
 
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const autoImportGlobals = require('./.eslintrc-auto-import.json').globals;
-
 export default [
     // ============ 全局忽略文件 ============
     {
-        ignores: [
-            'node_modules',
-            'dist',
-            'demo-dist',
-            '.history',
-            'components.d.ts',
-            'auto-imports.d.ts',
-        ],
+        ignores: ['node_modules', 'dist', 'demo-dist', '.history'],
     },
 
     // ============ ESLint 推荐规则（适用于所有 JS/TS 文件） ============
@@ -120,14 +108,6 @@ export default [
 
             // 在代码中使用 require() 导入模块时发出警告
             '@typescript-eslint/no-require-imports': 'warn',
-        },
-    },
-
-    // ============ Auto-import 全局变量 ============
-    {
-        files: ['**/*.ts', '**/*.vue'],
-        languageOptions: {
-            globals: autoImportGlobals,
         },
     },
 

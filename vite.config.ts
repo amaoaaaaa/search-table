@@ -2,11 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import vue from '@vitejs/plugin-vue';
 import Icons from 'unplugin-icons/vite';
-import IconsResolver from 'unplugin-icons/resolver';
 import dts from 'vite-plugin-dts';
-import AutoImport from 'unplugin-auto-import/vite';
-import Components from 'unplugin-vue-components/vite';
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
@@ -19,23 +15,6 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [
             vue(),
-
-            AutoImport({
-                imports: ['vue', 'vue-router'],
-                resolvers: [ElementPlusResolver()],
-                eslintrc: {
-                    enabled: true,
-                    filepath: './.eslintrc-auto-import.json',
-                    globalsPropValue: true,
-                },
-            }),
-
-            Components({
-                resolvers: [
-                    ElementPlusResolver({ importStyle: 'sass' }),
-                    IconsResolver({ prefix: 'icon' }),
-                ],
-            }),
 
             Icons({
                 autoInstall: true,

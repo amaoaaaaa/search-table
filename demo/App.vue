@@ -60,8 +60,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { ElMessage, ElMessageBox, ElConfigProvider } from 'element-plus';
+import { ref, h } from 'vue';
+import {
+    ElButton,
+    ElConfigProvider,
+    ElMessage,
+    ElMessageBox,
+    ElOption,
+    ElSelect,
+} from 'element-plus';
 import zh from 'element-plus/es/locale/lang/zh-cn';
 import {
     SearchTable,
@@ -70,6 +77,7 @@ import {
     type CellEditPayload,
 } from '@amaoaaaaa/search-table';
 import { mockFetchUsers, type User } from './mock-data';
+import IconRiDownloadLine from '~icons/ri/download-line';
 
 const searchTableRef = ref<InstanceType<typeof SearchTable>>();
 

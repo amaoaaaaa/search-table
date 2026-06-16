@@ -320,8 +320,26 @@ import {
 } from './types';
 import { toValue, isRef, StyleValue, reactive, useTemplateRef, ref, nextTick } from 'vue';
 import RenderFormatterResult from './components/RenderFormatterResult.vue';
-import { InputInstance } from 'element-plus';
+import { InputInstance, ElLoading } from 'element-plus';
+import {
+    ElButton,
+    ElCheckbox,
+    ElCheckboxGroup,
+    ElDatePicker,
+    ElInput,
+    ElPopconfirm,
+    ElPopover,
+    ElRadio,
+    ElRadioGroup,
+    ElScrollbar,
+    ElTable,
+    ElTableColumn,
+} from 'element-plus';
+import IconTablerFilter from '~icons/tabler/filter';
+import IconTablerFilterCheck from '~icons/tabler/filter-check';
 import { vTextEllipsis } from '@amaoaaaaa/v-text-ellipsis';
+
+const vLoading = ElLoading.directive;
 
 const props = withDefaults(defineProps<ProTableProps>(), {
     showIndex: true,

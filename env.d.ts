@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
 /// <reference types="unplugin-icons/types/vue" />
-/// <reference types="./auto-imports.d.ts" />
-/// <reference types="./components.d.ts" />
 
 declare module '*.vue' {
     import type { DefineComponent } from 'vue';
