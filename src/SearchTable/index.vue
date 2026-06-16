@@ -428,7 +428,12 @@ defineExpose({
             justify-content: center;
         }
     }
+
+    .el-button > span {
+        gap: 0 4px;
+    }
 }
+
 .el-pagination {
     ::v-deep(.el-pagination__sizes .el-select) {
         width: 110px;
