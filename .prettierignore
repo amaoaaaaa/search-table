@@ -1,3 +1,4 @@
 # 自动导入组件插件生成的类型文件
 auto-imports.d.ts
 components.d.ts
+.eslintrc-auto-import.json
