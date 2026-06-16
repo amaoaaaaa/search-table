@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "jsx": "preserve",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "skipLibCheck": true,
+        "noEmit": true,
+        "declaration": true,
+        "declarationDir": "./dist",
+        "baseUrl": ".",
+        "paths": {
+            "@amaoaaaaa/search-table": ["./src/index.ts"],
+            "~icons/*": ["node_modules/unplugin-icons/types/*"]
+        },
+        "types": ["unplugin-icons/types/vue"]
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.vue",
+        "demo/**/*.ts",
+        "demo/**/*.vue",
+        "env.d.ts",
+        "vite.config.ts",
+        "tailwind.config.ts"
+    ],
+    "exclude": ["node_modules", "dist"]
+}
