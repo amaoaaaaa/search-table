@@ -1,12 +1,11 @@
-import { ExtractPropTypes, MaybeRefOrGetter, VNode } from 'vue';
-import tableColumnProps, {
+import { MaybeRefOrGetter, VNode } from 'vue';
+import {
+    TableColumnProps,
     TableColumnCtx,
 } from 'element-plus/es/components/table/src/table-column/defaults';
+import { DefaultRow } from 'element-plus/es/components/table/src/table/defaults.mjs';
 
-// 获取 element-plus table-column 组件的属性
-export type ElTableColumnProps = ExtractPropTypes<typeof tableColumnProps>;
-
-export type TableRow = Record<string, any>;
+export type TableRow = DefaultRow;
 
 export type FilterOption = { label: string; value: string | number | boolean };
 
@@ -70,7 +69,7 @@ export type FilterType = 'radio' | 'checkbox' | 'datetimerange';
  * 表格列配置
  */
 export type ProTableColumn<T extends TableRow = TableRow> = Partial<
-    Omit<ElTableColumnProps, 'filters' | 'formatter'>
+    Omit<TableColumnProps<T>, 'filters'>
 > & {
     prop?: keyof T;
 
@@ -129,15 +128,15 @@ export type ProTableColumn<T extends TableRow = TableRow> = Partial<
      */
     actions?: ProTableAction<T>[] | ((row: T) => ProTableAction<T>[]);
 
-    /**
-     * 格式化单元格的函数
-     */
-    formatter?: (
-        row: T,
-        column: TableColumnCtx<T>,
-        cellValue: any,
-        index: number,
-    ) => VNode | string;
+    // /**
+    //  * 格式化单元格的函数
+    //  */
+    // formatter?: (
+    //     row: T,
+    //     column: TableColumnCtx<T>,
+    //     cellValue: any,
+    //     index: number,
+    // ) => VNode | string;
 };
 
 /**
@@ -164,7 +163,7 @@ export type ProTableProps<T extends TableRow = any> = {
     selectable?: boolean | ((row: any, index: number) => boolean);
 
     showIndex?: boolean;
-    indexWidth?: ElTableColumnProps['width'];
+    indexWidth?: TableColumnProps['width'];
     indexOffset?: number;
 
     loading?: boolean;

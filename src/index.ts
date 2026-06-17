@@ -22,7 +22,6 @@ export type {
     ProTableColumn,
     ProTableAction,
     TableRow,
-    ElTableColumnProps,
     FilterOption,
     FilterType,
     ActionButtonVisibility,
