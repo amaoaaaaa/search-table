@@ -1,16 +1,20 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { exec } from 'child_process';
 import vue from '@vitejs/plugin-vue';
 import Icons from 'unplugin-icons/vite';
 import dts from 'vite-plugin-dts';
+import { visualizer } from 'rollup-plugin-visualizer';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
 // 通过 mode 区分：
 //   - 默认模式（无 --mode 参数）：库构建（npm run build）
 //   - demo 模式（--mode demo）：demo 应用构建（npm run build:demo）
+//   - analyze 模式（--mode analyze）：库构建 + 打包分析（npm run build:analyze）
 export default defineConfig(({ mode }) => {
     const isDemo = mode === 'demo';
+    const isAnalyze = mode === 'analyze';
 
     return {
         plugins: [
@@ -26,6 +30,24 @@ export default defineConfig(({ mode }) => {
                     tsconfigPath: './tsconfig.build.json',
                     outDir: './dist',
                 }),
+
+            // 打包大小分析（--mode analyze）
+            isAnalyze &&
+                visualizer({
+                    filename: 'stats.html',
+                    open: false,
+                    gzipSize: true,
+                    brotliSize: true,
+                }),
+
+            // analyze 模式下构建完成后自动打开分析报告
+            isAnalyze && {
+                name: 'open-analyze-report',
+                closeBundle() {
+                    const reportPath = resolve(__dirname, 'stats.html');
+                    exec(`start "" "${reportPath}"`);
+                },
+            },
         ].filter(Boolean),
 
         resolve: {
@@ -60,9 +82,8 @@ export default defineConfig(({ mode }) => {
                           'element-plus',
                           'axios',
                           'lodash-es',
-                          /^element-plus\/.*/,
-                          /^@element-plus\/.*/,
-                          /^lodash-es\/.*/,
+                          '@amaoaaaaa/v-text-ellipsis',
+                          /node_modules/,
                       ],
                       output: {
                           globals: {

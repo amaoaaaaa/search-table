@@ -6,3 +6,4 @@ demo-dist
 .history
 
 vite.config.ts.timestamp-*
+stats.html

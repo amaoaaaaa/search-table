@@ -13,10 +13,8 @@
         "noEmit": true,
         "declaration": true,
         "declarationDir": "./dist",
-        "baseUrl": ".",
         "paths": {
-            "@amaoaaaaa/search-table": ["./src/index.ts"],
-            "~icons/*": ["node_modules/unplugin-icons/types/*"]
+            "@amaoaaaaa/search-table": ["./src/index.ts"]
         },
         "types": ["unplugin-icons/types/vue"]
     },
