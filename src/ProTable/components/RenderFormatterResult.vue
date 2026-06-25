@@ -1,5 +1,6 @@
 <template>
     <component :is="res" v-if="isVNode(res)" />
+    <!-- eslint-disable-next-line vue/no-v-html -->
     <span v-else v-html="res" />
 </template>
 
