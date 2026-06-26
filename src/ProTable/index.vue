@@ -1,7 +1,7 @@
 <template>
     <section v-loading="loading" element-loading-text="加载中...">
         <el-table
-            ref="tableRef"
+            ref="elTableRef"
             :data="data"
             border
             class="pro-table"
@@ -358,7 +358,7 @@ const emit = defineEmits<{
     'cell-edit': [payload: CellEditPayload];
 }>();
 
-const tableRef = useTemplateRef('tableRef');
+const tableRef = useTemplateRef('elTableRef');
 
 /**
  * 弹窗内的临时筛选数据，只在点击"确定"时才提交到 filterData

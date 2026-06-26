@@ -45,7 +45,7 @@
 
         <!-- 表格区 -->
         <ProTable
-            ref="tableRef"
+            ref="proTableRef"
             v-bind="props"
             class="flex-1 overflow-hidden"
             :index-offset="realOffset"
@@ -112,7 +112,6 @@ import { parseErrorReason } from '../utils/parseErrorReason';
 import { SelectionStore } from './SelectionStore';
 import { useDelayedRef } from '../hooks/useDelayedRef';
 import { useTableSort } from './useTableSort';
-import { ProTableInstance } from '../ProTable';
 import {
     computed,
     ref,
@@ -144,7 +143,7 @@ const emit = defineEmits<{
     'cell-edit': [payload: CellEditPayload];
 }>();
 
-const tableRef = useTemplateRef<ProTableInstance>('tableRef');
+const tableRef = useTemplateRef('proTableRef');
 
 const { sortState, onSortChange } = useTableSort({
     defaultSort: props.defaultSort,
