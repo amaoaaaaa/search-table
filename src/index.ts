@@ -15,6 +15,7 @@ export type {
     PageParams,
     PageResp,
 } from './SearchTable/types';
+export type { SearchTableInstance } from './SearchTable';
 
 // ProTable 类型
 export type {
@@ -27,11 +28,15 @@ export type {
     ActionButtonVisibility,
     ApplyFilterPayload,
     CellEditPayload,
+
+    // 优化命名导出
+    ProTableColumn as SearchTableColumn,
+    ProTableAction as SearchTableAction,
 } from './ProTable/types';
 
 // 工具
-export { SelectionStore } from './SearchTable/SelectionStore';
-export { useTableSort } from './SearchTable/useTableSort';
-export type { SortState, UseTableSortOption } from './SearchTable/useTableSort';
-export { useDelayedRef } from './hooks/useDelayedRef';
-export { parseErrorReason } from './utils/parseErrorReason';
+// export { SelectionStore } from './SearchTable/SelectionStore';
+// export { useTableSort } from './SearchTable/useTableSort';
+// export type { SortState, UseTableSortOption } from './SearchTable/useTableSort';
+// export { useDelayedRef } from './hooks/useDelayedRef';
+// export { parseErrorReason } from './utils/parseErrorReason';
