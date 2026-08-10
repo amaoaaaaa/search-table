@@ -4,6 +4,14 @@
     "type": "module",
     "description": "基于 Element Plus 的搜索表格组件，支持分页、排序、筛选、跨页勾选等功能",
     "license": "MIT",
+    "homepage": "https://github.com/amaoaaaaa/search-table#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/amaoaaaaa/search-table.git"
+    },
+    "bugs": {
+        "url": "https://github.com/amaoaaaaa/search-table/issues"
+    },
     "author": "amaoaaaaa",
     "keywords": [
         "vue3",
