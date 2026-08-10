@@ -18,6 +18,13 @@ export type SearchTableProps<T extends TableRow = any> = Omit<
     searchInputPlaceholder?: string;
 
     /**
+     * 搜索框绑定到查询参数的字段名
+     *
+     * @default 'search'
+     */
+    searchField?: string;
+
+    /**
      * 是否显示新增按钮
      *
      * @default false

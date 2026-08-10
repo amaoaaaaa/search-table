@@ -103,19 +103,20 @@ const columns = [{ label: '姓名', prop: 'name' }];
 
 ### SearchTable Props
 
-| 属性                     | 类型                                 | 默认值             | 说明                 |
-| ------------------------ | ------------------------------------ | ------------------ | -------------------- |
-| `columns`                | `ProTableColumn[]`                   | -                  | 表格列配置           |
-| `fetchFn`                | `SearchTableFetchFn`                 | **必填**           | 数据请求函数         |
-| `showSearch`             | `boolean`                            | `true`             | 是否显示搜索区域     |
-| `searchInputPlaceholder` | `string`                             | `"输入搜索关键词"` | 搜索框占位文本       |
-| `showAddButton`          | `boolean`                            | `false`            | 是否显示新增按钮     |
-| `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮 |
-| `pageSize`               | `number`                             | 自动计算           | 每页条数             |
-| `elPaginationProps`      | `Partial<PaginationProps>`           | -                  | 分页组件属性         |
-| `defaultSort`            | `SortState`                          | -                  | 默认排序             |
-| `selectable`             | `boolean \| (row, index) => boolean` | -                  | 是否可勾选           |
-| `searchParamsHandler`    | `(params) => params`                 | -                  | 搜索参数处理函数     |
+| 属性                     | 类型                                 | 默认值             | 说明                         |
+| ------------------------ | ------------------------------------ | ------------------ | ---------------------------- |
+| `columns`                | `ProTableColumn[]`                   | -                  | 表格列配置                   |
+| `fetchFn`                | `SearchTableFetchFn`                 | **必填**           | 数据请求函数                 |
+| `showSearch`             | `boolean`                            | `true`             | 是否显示搜索区域             |
+| `searchInputPlaceholder` | `string`                             | `"输入搜索关键词"` | 搜索框占位文本               |
+| `searchField`            | `string`                             | `"search"`         | 搜索框绑定到查询参数的字段名 |
+| `showAddButton`          | `boolean`                            | `false`            | 是否显示新增按钮             |
+| `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮         |
+| `pageSize`               | `number`                             | 自动计算           | 每页条数                     |
+| `elPaginationProps`      | `Partial<PaginationProps>`           | -                  | 分页组件属性                 |
+| `defaultSort`            | `SortState`                          | -                  | 默认排序                     |
+| `selectable`             | `boolean \| (row, index) => boolean` | -                  | 是否可勾选                   |
+| `searchParamsHandler`    | `(params) => params`                 | -                  | 搜索参数处理函数             |
 
 ### SearchTable Events
 

@@ -4,7 +4,7 @@
         <section v-if="showSearch" class="mb-6 flex flex-shrink-0 items-center justify-between">
             <div class="flex items-center gap-x-3">
                 <el-input
-                    v-model.trim="query.search"
+                    v-model.trim="searchQuery"
                     class="!w-[260px] flex-shrink-0"
                     :placeholder="searchInputPlaceholder"
                     clearable
@@ -130,6 +130,7 @@ import IconRiDeleteBack2Line from '~icons/ri/delete-back2-line';
 const props = withDefaults(defineProps<SearchTableProps>(), {
     showSearch: true,
     searchInputPlaceholder: '输入搜索关键词',
+    searchField: 'search',
 
     // ProTable 的默认值
     showIndex: true,
@@ -177,8 +178,19 @@ const offset = computed(() => (pagination.value.currPage - 1) * pagination.value
 /** 当前数据的实际 offset */
 const realOffset = ref(0);
 
-const query = ref<{ search: string; [key: string]: any }>({
-    search: '',
+/** 搜索框绑定的字段名 */
+const searchField = computed(() => props.searchField ?? 'search');
+
+const query = ref<Record<string, any>>({
+    [searchField.value]: '',
+});
+
+/** 搜索框 v-model，动态绑定 searchField 指定的字段 */
+const searchQuery = computed<string>({
+    get: () => query.value[searchField.value] ?? '',
+    set: (val) => {
+        query.value[searchField.value] = val;
+    },
 });
 const filterParams = reactive<Record<string, any>>({});
 
