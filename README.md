@@ -168,11 +168,41 @@ const columns = [{ label: '姓名', prop: 'name' }];
 | `search-table__pagination`             | 分页组件                                   |
 | `search-table__footer-spacer`          | 分页区域右侧占位（用于保持分页居中）       |
 
+### SearchTableConfigProvider 全局配置
+
+组件默认按 element-plus 表格的默认尺寸（表头 40px、每行 40px）计算每页条数。
+如果业务中修改了表格样式，可用 `SearchTableConfigProvider` 统一覆盖，避免分页行数计算错误。
+该组件只提供配置、不渲染额外 DOM，用法类似 `ElConfigProvider`：
+
+```vue
+<template>
+    <SearchTableConfigProvider row-height="48" header-height="56px">
+        <SearchTable :columns="columns" :fetch-fn="fetchData" />
+    </SearchTableConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table';
+</script>
+```
+
+| 属性           | 类型               | 默认值 | 说明                             |
+| -------------- | ------------------ | ------ | -------------------------------- |
+| `rowHeight`    | `number \| string` | `40`   | 表格行高（px），用于计算每页条数 |
+| `headerHeight` | `number \| string` | `40`   | 表头高度（px），用于计算每页条数 |
+
+取值规则：
+
+- 支持数字或字符串，字符串只提取前导数字并忽略单位：`48`、`'48'`、`'48px'`、`' 48.5px '` 均可用，`'3rem'` 会被当成 `3`（不做单位换算）。
+- 解析结果四舍五入为整数：`'48.5px'` 为 `49`，`'48.4'` 为 `48`。
+- 无法解析或非正数（如 `'abc'`、`''`、`0`、`Infinity`）会回退默认值 `40`。
+- 只影响未显式传入 `pageSize` 的实例；配置在实例挂载时读取一次，运行中修改 props 不会让已挂载实例重新计算。
+
 ## 导出清单
 
-**组件：** `SearchTable`, `ProTable`
+**组件：** `SearchTable`, `SearchTableConfigProvider`, `ProTable`
 
-**类型：** `SearchTableProps`, `SearchTableFetchFn`, `PageParams`, `PageResp`, `ProTableProps`, `ProTableColumn`, `ProTableAction`, `TableRow`, `ApplyFilterPayload`, `CellEditPayload`, `SortState`, `ProTableInstance`
+**类型：** `SearchTableProps`, `SearchTableFetchFn`, `PageParams`, `PageResp`, `SearchTableConfigProviderProps`, `ProTableProps`, `ProTableColumn`, `ProTableAction`, `TableRow`, `ApplyFilterPayload`, `CellEditPayload`, `SortState`, `ProTableInstance`
 
 **工具：** `SelectionStore`, `useTableSort`, `useDelayedRef`, `parseErrorReason`
 

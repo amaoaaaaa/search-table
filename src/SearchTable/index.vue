@@ -130,6 +130,7 @@ import { parseErrorReason } from '../utils/parseErrorReason';
 import { SelectionStore } from './SelectionStore';
 import { useDelayedRef } from '../hooks/useDelayedRef';
 import { useTableSort } from './useTableSort';
+import { DEFAULT_SEARCH_TABLE_HEIGHT_CONFIG, searchTableConfigKey } from './config';
 import {
     computed,
     ref,
@@ -138,6 +139,7 @@ import {
     watch,
     onMounted,
     onUnmounted,
+    inject,
     useTemplateRef,
 } from 'vue';
 import IconRiSearchLine from '~icons/ri/search-line';
@@ -163,6 +165,9 @@ const emit = defineEmits<{
 }>();
 
 const tableRef = useTemplateRef('proTableRef');
+
+/** 表格高度配置（行高、表头高度），由 SearchTableConfigProvider 提供 */
+const heightConfig = inject(searchTableConfigKey, DEFAULT_SEARCH_TABLE_HEIGHT_CONFIG);
 
 const { sortState, onSortChange } = useTableSort({
     defaultSort: props.defaultSort,
@@ -310,20 +315,20 @@ const refresh = async () => {
  * @description
  * 该函数通过获取表格容器的高度，减去表头高度后，
  * 根据每行的高度计算出表格主体区域最多可以显示多少行数据。
+ * 表头高度与行高默认取 element-plus 表格的默认样式尺寸，
+ * 业务修改了表格样式时可通过 SearchTableConfigProvider 统一覆盖。
  *
  * @returns 返回表格中可显示的最大行数
  */
 function calcMaxRow() {
-    // 定义表头高度和每行高度的常量
-    const TABLE_HEAD_HEIGHT = 40;
-    const ROW_HEIGHT = 40;
+    const { rowHeight, headerHeight } = heightConfig;
 
     // 获取表格容器元素并计算表格主体区域的最大高度
     const tableWrap = tableRef.value?.$el as HTMLElement;
-    const tableBodyMaxHeight = tableWrap.offsetHeight - TABLE_HEAD_HEIGHT;
+    const tableBodyMaxHeight = tableWrap.offsetHeight - headerHeight;
 
     // 根据表格主体区域最大高度和每行高度计算最大行数
-    const maxRow = Math.floor(tableBodyMaxHeight / ROW_HEIGHT);
+    const maxRow = Math.floor(tableBodyMaxHeight / rowHeight);
 
     return maxRow;
 }

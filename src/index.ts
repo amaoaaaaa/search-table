@@ -3,6 +3,7 @@ import './tailwind.css';
 
 // 组件
 export { default as SearchTable } from './SearchTable/index.vue';
+export { default as SearchTableConfigProvider } from './SearchTable/ConfigProvider.vue';
 export { default as ProTable } from './ProTable/index.vue';
 
 // 组件实例类型
@@ -16,6 +17,7 @@ export type {
     PageResp,
 } from './SearchTable/types';
 export type { SearchTableInstance } from './SearchTable';
+export type { SearchTableConfigProviderProps } from './SearchTable/config';
 
 // ProTable 类型
 export type {
