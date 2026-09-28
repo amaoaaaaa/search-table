@@ -135,6 +135,39 @@ const columns = [{ label: '姓名', prop: 'name' }];
 | `getSelectionRows` | `() => TableRow[]`           | 获取已勾选的行 |
 | `selectRows`       | `(rows: TableRow[]) => void` | 勾选指定行     |
 
+### SearchTable 样式定制
+
+组件内部按 BEM 规范预留了类名，块名为 `search-table`，可在外层通过 `:deep()` 覆盖样式：
+
+```vue
+<template>
+    <SearchTable class="my-search-table" :columns="columns" :fetch-fn="fetchData" />
+</template>
+
+<style scoped>
+.my-search-table :deep(.search-table__search-button) {
+    border-radius: 9999px;
+}
+</style>
+```
+
+| 类名                                   | 说明                                       |
+| -------------------------------------- | ------------------------------------------ |
+| `search-table`                         | 根容器                                     |
+| `search-table__toolbar`                | 顶部区域（搜索区 + 操作区）                |
+| `search-table__search`                 | 左侧搜索组（搜索框 + 搜索表单 + 搜索按钮） |
+| `search-table__search-input`           | 搜索输入框                                 |
+| `search-table__search-button`          | 搜索按钮                                   |
+| `search-table__actions`                | 右侧操作按钮组（新增 / 批量删除 / 插槽）   |
+| `search-table__add-button`             | 新增按钮                                   |
+| `search-table__batch-delete-button`    | 批量删除按钮                               |
+| `search-table__body`                   | 表格区域（ProTable 根节点）                |
+| `search-table__footer`                 | 底部分页区域                               |
+| `search-table__selection`              | 已选条数提示区域                           |
+| `search-table__clear-selection-button` | 清空勾选按钮                               |
+| `search-table__pagination`             | 分页组件                                   |
+| `search-table__footer-spacer`          | 分页区域右侧占位（用于保持分页居中）       |
+
 ## 导出清单
 
 **组件：** `SearchTable`, `ProTable`

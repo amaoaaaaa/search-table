@@ -1,11 +1,14 @@
 <template>
-    <div class="flex h-full flex-col">
+    <div class="search-table flex h-full flex-col">
         <!-- 搜索区 -->
-        <section v-if="showSearch" class="mb-6 flex flex-shrink-0 items-center justify-between">
-            <div class="flex items-center gap-x-3">
+        <section
+            v-if="showSearch"
+            class="search-table__toolbar mb-6 flex flex-shrink-0 items-center justify-between"
+        >
+            <div class="search-table__search flex items-center gap-x-3">
                 <el-input
                     v-model.trim="searchQuery"
-                    class="!w-[260px] flex-shrink-0"
+                    class="search-table__search-input !w-[260px] flex-shrink-0"
                     :placeholder="searchInputPlaceholder"
                     clearable
                     @keyup.enter="resetToFirstPage"
@@ -15,7 +18,11 @@
                 <!-- 更多搜索条件 -->
                 <slot name="search-form" :query="query" :search="resetToFirstPage"></slot>
 
-                <el-button type="primary" @click="resetToFirstPage">
+                <el-button
+                    class="search-table__search-button"
+                    type="primary"
+                    @click="resetToFirstPage"
+                >
                     <icon-ri-search-line />
                     搜索
                 </el-button>
@@ -24,13 +31,19 @@
             <!-- 头部中间内容插槽 -->
             <slot name="top-center"></slot>
 
-            <div>
-                <el-button v-if="showAddButton" type="primary" @click="emit('add')">
+            <div class="search-table__actions">
+                <el-button
+                    v-if="showAddButton"
+                    class="search-table__add-button"
+                    type="primary"
+                    @click="emit('add')"
+                >
                     <icon-ri-add-line />新增
                 </el-button>
 
                 <el-button
                     v-if="showBatchDeleteButton"
+                    class="search-table__batch-delete-button"
                     :disabled="!selectionRows.length"
                     type="danger"
                     @click="emit('batch-delete', selectionRows)"
@@ -47,7 +60,7 @@
         <ProTable
             ref="proTableRef"
             v-bind="props"
-            class="flex-1 overflow-hidden"
+            class="search-table__body flex-1 overflow-hidden"
             :index-offset="realOffset"
             :data="tableData"
             :loading="delayedLoading"
@@ -63,8 +76,8 @@
 
         <!-- 分页区 -->
         <!-- FIX 分页点击下一页，UI变了，如果请求失败会导致 UI 和实际显示数据不一致 -->
-        <section class="mt-5 flex flex-shrink-0 items-center justify-between">
-            <div class="flex w-[164px] items-center">
+        <section class="search-table__footer mt-5 flex flex-shrink-0 items-center justify-between">
+            <div class="search-table__selection flex w-[164px] items-center">
                 <template v-if="selectable">
                     <el-text type="info">已选 {{ selectionRows.length }} 条</el-text>
 
@@ -75,7 +88,12 @@
                         effect="dark"
                         :hide-after="0"
                     >
-                        <el-button type="danger" text class="ml-1 !px-2" @click="clearSelection">
+                        <el-button
+                            type="danger"
+                            text
+                            class="search-table__clear-selection-button ml-1 !px-2"
+                            @click="clearSelection"
+                        >
                             <icon-ri-delete-back-2-line />
                         </el-button>
                     </el-tooltip>
@@ -90,12 +108,12 @@
                 background
                 :page-sizes="pageSizes"
                 layout="total, sizes, prev, pager, next, jumper"
-                class="flex-shrink-0"
+                class="search-table__pagination flex-shrink-0"
                 @size-change="fetchList"
                 @current-change="fetchList"
             ></el-pagination>
 
-            <div class="w-[164px]"></div>
+            <div class="search-table__footer-spacer w-[164px]"></div>
         </section>
     </div>
 </template>
