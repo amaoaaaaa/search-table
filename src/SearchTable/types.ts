@@ -112,12 +112,12 @@ export interface PageResp<T = any> {
     /**
      * 请求是否成功
      */
-    success: boolean;
+    success?: boolean;
 
     /**
      * 错误代码-0为成功
      */
-    code: number;
+    code?: number;
 
     /**
      * 错误信息
@@ -132,25 +132,25 @@ export interface PageResp<T = any> {
     /**
      * 开始索引
      */
-    offset: number;
+    offset?: number;
 
     /**
      * 每页数量
      */
-    limit: number;
+    limit?: number;
 
     /**
      * 元素总数
      */
-    totalCount: number;
+    totalCount?: number;
 
     /**
      * 当前页数（从1开始）
      */
-    currPageIndex: number;
+    currPageIndex?: number;
 
     /**
      * 总页数
      */
-    pageCount: number;
+    pageCount?: number;
 }

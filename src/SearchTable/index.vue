@@ -220,7 +220,7 @@ async function fetchList() {
         const paramsRes = props.searchParamsHandler ? props.searchParamsHandler(params) : params;
 
         // 请求数据
-        const { data = [], totalCount } = await props.fetchFn(paramsRes, {
+        const { data = [], totalCount = 0 } = await props.fetchFn(paramsRes, {
             signal: abortController.signal,
         });
 
