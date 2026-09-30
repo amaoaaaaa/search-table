@@ -103,20 +103,21 @@ const columns = [{ label: '姓名', prop: 'name' }];
 
 ### SearchTable Props
 
-| 属性                     | 类型                                 | 默认值             | 说明                         |
-| ------------------------ | ------------------------------------ | ------------------ | ---------------------------- |
-| `columns`                | `ProTableColumn[]`                   | -                  | 表格列配置                   |
-| `fetchFn`                | `SearchTableFetchFn`                 | **必填**           | 数据请求函数                 |
-| `showSearch`             | `boolean`                            | `true`             | 是否显示搜索区域             |
-| `searchInputPlaceholder` | `string`                             | `"输入搜索关键词"` | 搜索框占位文本               |
-| `searchField`            | `string`                             | `"search"`         | 搜索框绑定到查询参数的字段名 |
-| `showAddButton`          | `boolean`                            | `false`            | 是否显示新增按钮             |
-| `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮         |
-| `pageSize`               | `number`                             | 自动计算           | 每页条数                     |
-| `elPaginationProps`      | `Partial<PaginationProps>`           | -                  | 分页组件属性                 |
-| `defaultSort`            | `SortState`                          | -                  | 默认排序                     |
-| `selectable`             | `boolean \| (row, index) => boolean` | -                  | 是否可勾选                   |
-| `searchParamsHandler`    | `(params) => params`                 | -                  | 搜索参数处理函数             |
+| 属性                     | 类型                                 | 默认值             | 说明                           |
+| ------------------------ | ------------------------------------ | ------------------ | ------------------------------ |
+| `columns`                | `ProTableColumn[]`                   | -                  | 表格列配置                     |
+| `fetchFn`                | `SearchTableFetchFn`                 | **必填**           | 数据请求函数                   |
+| `showSearch`             | `boolean`                            | `true`             | 是否显示搜索区域               |
+| `searchInputPlaceholder` | `string`                             | `"输入搜索关键词"` | 搜索框占位文本                 |
+| `searchButtonText`       | `string`                             | `"搜索"`           | 搜索按钮文字（优先于全局配置） |
+| `searchField`            | `string`                             | `"search"`         | 搜索框绑定到查询参数的字段名   |
+| `showAddButton`          | `boolean`                            | `false`            | 是否显示新增按钮               |
+| `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮           |
+| `pageSize`               | `number`                             | 自动计算           | 每页条数                       |
+| `elPaginationProps`      | `SearchTablePaginationProps`         | -                  | 分页组件视觉配置（见下方说明） |
+| `defaultSort`            | `SortState`                          | -                  | 默认排序                       |
+| `selectable`             | `boolean \| (row, index) => boolean` | -                  | 是否可勾选                     |
+| `searchParamsHandler`    | `(params) => params`                 | -                  | 搜索参数处理函数               |
 
 ### SearchTable Events
 
@@ -172,11 +173,16 @@ const columns = [{ label: '姓名', prop: 'name' }];
 
 组件默认按 element-plus 表格的默认尺寸（表头 40px、每行 40px）计算每页条数。
 如果业务中修改了表格样式，可用 `SearchTableConfigProvider` 统一覆盖，避免分页行数计算错误。
-该组件只提供配置、不渲染额外 DOM，用法类似 `ElConfigProvider`：
+也可以在全局统一定制分页组件的视觉配置。该组件只提供配置、不渲染额外 DOM，用法类似 `ElConfigProvider`：
 
 ```vue
 <template>
-    <SearchTableConfigProvider row-height="48" header-height="56px">
+    <SearchTableConfigProvider
+        row-height="48"
+        header-height="56px"
+        :pagination-props="{ layout: 'total, prev, pager, next, jumper', pagerCount: 7 }"
+        :search-props="{ buttonText: '查询' }"
+    >
         <SearchTable :columns="columns" :fetch-fn="fetchData" />
     </SearchTableConfigProvider>
 </template>
@@ -186,23 +192,59 @@ import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table'
 </script>
 ```
 
-| 属性           | 类型               | 默认值 | 说明                             |
-| -------------- | ------------------ | ------ | -------------------------------- |
-| `rowHeight`    | `number \| string` | `40`   | 表格行高（px），用于计算每页条数 |
-| `headerHeight` | `number \| string` | `40`   | 表头高度（px），用于计算每页条数 |
+| 属性              | 类型                         | 默认值                                                                    | 说明                             |
+| ----------------- | ---------------------------- | ------------------------------------------------------------------------- | -------------------------------- |
+| `rowHeight`       | `number \| string`           | `40`                                                                      | 表格行高（px），用于计算每页条数 |
+| `headerHeight`    | `number \| string`           | `40`                                                                      | 表头高度（px），用于计算每页条数 |
+| `paginationProps` | `SearchTablePaginationProps` | `{ background: true, layout: 'total, sizes, prev, pager, next, jumper' }` | 分页组件视觉配置                 |
+| `searchProps`     | `SearchTableSearchProps`     | `{ buttonText: '搜索' }`                                                  | 搜索区域配置                     |
 
 取值规则：
 
 - 支持数字或字符串，字符串只提取前导数字并忽略单位：`48`、`'48'`、`'48px'`、`' 48.5px '` 均可用，`'3rem'` 会被当成 `3`（不做单位换算）。
 - 解析结果四舍五入为整数：`'48.5px'` 为 `49`，`'48.4'` 为 `48`。
 - 无法解析或非正数（如 `'abc'`、`''`、`0`、`Infinity`）会回退默认值 `40`。
+- `layout` 与 element-plus 分页组件一致，可按需增减 `total`、`sizes`、`jumper` 等；传空字符串会回退默认布局。
+- 分页配置的优先级：`elPaginationProps`（实例级）> `paginationProps`（全局）> 默认配置；值为 `undefined` 的字段不会覆盖低优先级的值。
+- 搜索区域的配置统一放在 `searchProps` 对象里，当前支持 `buttonText`（搜索按钮文字），后续新增配置直接往对象里加字段即可；优先级：`searchButtonText`（实例级）> `searchProps.buttonText`（全局）> 默认值。
 - 只影响未显式传入 `pageSize` 的实例；配置在实例挂载时读取一次，运行中修改 props 不会让已挂载实例重新计算。
+
+`SearchTablePaginationProps` 是从 element-plus `PaginationProps` 中 Pick 出来的子集，保证与 `el-pagination` 类型一致，支持以下字段：
+
+| 字段          | 说明                                  |
+| ------------- | ------------------------------------- |
+| `size`        | 分页组件尺寸                          |
+| `background`  | 是否为分页按钮添加背景色，默认 `true` |
+| `pagerCount`  | 页码按钮数量                          |
+| `layout`      | 组件布局，各元素用逗号分隔            |
+| `popperClass` | 每页条数下拉框的类名                  |
+| `popperStyle` | 每页条数下拉框的行内样式              |
+| `prevText`    | 替代上一页图标显示的文本              |
+| `prevIcon`    | 上一页图标                            |
+| `nextText`    | 替代下一页图标显示的文本              |
+| `nextIcon`    | 下一页图标                            |
+
+`SearchTable` 的 `elPaginationProps` 与全局的 `paginationProps` 支持完全相同的字段，例如：
+
+```vue
+<SearchTable
+    :columns="columns"
+    :fetch-fn="fetchData"
+    :el-pagination-props="{ background: false, pagerCount: 5, prevText: '上一页' }"
+/>
+```
+
+`SearchTableSearchProps` 目前支持以下字段，后续新增搜索区配置会继续往这个对象里加：
+
+| 字段         | 说明                                                          |
+| ------------ | ------------------------------------------------------------- |
+| `buttonText` | 搜索按钮文字，默认 `搜索`；实例级可用 `searchButtonText` 覆盖 |
 
 ## 导出清单
 
 **组件：** `SearchTable`, `SearchTableConfigProvider`, `ProTable`
 
-**类型：** `SearchTableProps`, `SearchTableFetchFn`, `PageParams`, `PageResp`, `SearchTableConfigProviderProps`, `ProTableProps`, `ProTableColumn`, `ProTableAction`, `TableRow`, `ApplyFilterPayload`, `CellEditPayload`, `SortState`, `ProTableInstance`
+**类型：** `SearchTableProps`, `SearchTablePaginationProps`, `SearchTableSearchProps`, `SearchTableFetchFn`, `PageParams`, `PageResp`, `SearchTableConfigProviderProps`, `ProTableProps`, `ProTableColumn`, `ProTableAction`, `TableRow`, `ApplyFilterPayload`, `CellEditPayload`, `SortState`, `ProTableInstance`
 
 **工具：** `SelectionStore`, `useTableSort`, `useDelayedRef`, `parseErrorReason`
 

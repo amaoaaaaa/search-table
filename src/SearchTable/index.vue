@@ -24,7 +24,7 @@
                     @click="resetToFirstPage"
                 >
                     <icon-ri-search-line />
-                    搜索
+                    {{ realSearchButtonText }}
                 </el-button>
             </div>
 
@@ -101,13 +101,11 @@
             </div>
 
             <el-pagination
-                v-bind="elPaginationProps"
+                v-bind="paginationProps"
                 v-model:page-size="pagination.pageSize"
                 v-model:current-page="pagination.currPage"
                 :total="pagination.total"
-                background
                 :page-sizes="pageSizes"
-                layout="total, sizes, prev, pager, next, jumper"
                 class="search-table__pagination flex-shrink-0"
                 @size-change="fetchList"
                 @current-change="fetchList"
@@ -130,7 +128,7 @@ import { parseErrorReason } from '../utils/parseErrorReason';
 import { SelectionStore } from './SelectionStore';
 import { useDelayedRef } from '../hooks/useDelayedRef';
 import { useTableSort } from './useTableSort';
-import { DEFAULT_SEARCH_TABLE_HEIGHT_CONFIG, searchTableConfigKey } from './config';
+import { DEFAULT_SEARCH_TABLE_CONFIG, mergePaginationProps, searchTableConfigKey } from './config';
 import {
     computed,
     ref,
@@ -166,8 +164,26 @@ const emit = defineEmits<{
 
 const tableRef = useTemplateRef('proTableRef');
 
-/** 表格高度配置（行高、表头高度），由 SearchTableConfigProvider 提供 */
-const heightConfig = inject(searchTableConfigKey, DEFAULT_SEARCH_TABLE_HEIGHT_CONFIG);
+/** 全局配置（行高、表头高度、分页配置），由 SearchTableConfigProvider 提供 */
+const globalConfig = inject(searchTableConfigKey, DEFAULT_SEARCH_TABLE_CONFIG);
+
+/**
+ * 分页组件的视觉配置
+ *
+ * 优先取 `elPaginationProps`（实例级），其次取全局配置，最后取默认配置
+ */
+const paginationProps = computed(() =>
+    mergePaginationProps(globalConfig.paginationProps, props.elPaginationProps),
+);
+
+/**
+ * 搜索按钮文字
+ *
+ * 优先取实例的 `searchButtonText`，其次取全局配置的 `searchProps.buttonText`
+ */
+const realSearchButtonText = computed(
+    () => props.searchButtonText ?? globalConfig.searchProps.buttonText,
+);
 
 const { sortState, onSortChange } = useTableSort({
     defaultSort: props.defaultSort,
@@ -321,7 +337,7 @@ const refresh = async () => {
  * @returns 返回表格中可显示的最大行数
  */
 function calcMaxRow() {
-    const { rowHeight, headerHeight } = heightConfig;
+    const { rowHeight, headerHeight } = globalConfig;
 
     // 获取表格容器元素并计算表格主体区域的最大高度
     const tableWrap = tableRef.value?.$el as HTMLElement;

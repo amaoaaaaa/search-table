@@ -12,6 +12,8 @@ export type { ProTableInstance } from './ProTable';
 // SearchTable 类型
 export type {
     SearchTableProps,
+    SearchTablePaginationProps,
+    SearchTableSearchProps,
     SearchTableFetchFn,
     PageParams,
     PageResp,

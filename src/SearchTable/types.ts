@@ -2,6 +2,45 @@ import { ProTableProps, TableRow } from '../ProTable/types';
 import { PaginationProps } from 'element-plus';
 import { SortState } from './useTableSort';
 
+/**
+ * 分页组件的视觉配置
+ *
+ * @description
+ * 直接从 element-plus 的 `PaginationProps` 中 Pick，
+ * 保证这里的类型与 `el-pagination` 的 props 始终一致。
+ */
+export type SearchTablePaginationProps = Partial<
+    Pick<
+        PaginationProps,
+        | 'size'
+        | 'background'
+        | 'pagerCount'
+        | 'layout'
+        | 'popperClass'
+        | 'popperStyle'
+        | 'prevText'
+        | 'prevIcon'
+        | 'nextText'
+        | 'nextIcon'
+    >
+>;
+
+/**
+ * 搜索区域的配置
+ *
+ * @description
+ * 用对象承载搜索区的可配置项，后续新增配置直接往里加字段，
+ * 避免在全局配置上不断堆叠扁平的单项属性。
+ */
+export interface SearchTableSearchProps {
+    /**
+     * 搜索按钮的文字
+     *
+     * @default '搜索'
+     */
+    buttonText?: string;
+}
+
 export type SearchTableProps<T extends TableRow = any> = Omit<
     ProTableProps<T>,
     'data' | 'defaultSort'
@@ -14,8 +53,19 @@ export type SearchTableProps<T extends TableRow = any> = Omit<
 
     /**
      * 搜索输入框的提示语
+     *
+     * @default '输入搜索关键词'
      */
     searchInputPlaceholder?: string;
+
+    /**
+     * 搜索按钮的文字
+     *
+     * 优先级高于 `SearchTableConfigProvider` 中的 `searchProps.buttonText`
+     *
+     * @default '搜索'
+     */
+    searchButtonText?: string;
 
     /**
      * 搜索框绑定到查询参数的字段名
@@ -44,9 +94,11 @@ export type SearchTableProps<T extends TableRow = any> = Omit<
     pageSize?: number;
 
     /**
-     * element-plus 分页组件属性
+     * element-plus 分页组件的视觉配置
+     *
+     * 优先级高于 `SearchTableConfigProvider` 中的 `paginationProps`
      */
-    elPaginationProps?: Partial<Pick<PaginationProps, 'size' | 'pagerCount'>>;
+    elPaginationProps?: SearchTablePaginationProps;
 
     /**
      * 默认排序
