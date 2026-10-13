@@ -11,6 +11,7 @@
 - ☑️ 跨页勾选（手动管理 selection state）
 - ✏️ 单元格内联编辑
 - 🎨 内置 ProTable 组件，可独立使用
+- 🧩 表格区支持插槽替换，可用自定义组件渲染
 - 📦 图标构建时内联 SVG，零网络请求，离线可用
 
 ## 安装
@@ -56,11 +57,11 @@ npm install vue element-plus axios lodash-es
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useTemplateRef } from 'vue';
 import { SearchTable } from '@amaoaaaaa/search-table';
 import type { SearchTableProps, PageParams, PageResp } from '@amaoaaaaa/search-table';
 
-const searchTableRef = ref();
+const searchTableRef = useTemplateRef('searchTableRef');
 
 const columns = [
     { label: '姓名', prop: 'name' },
@@ -121,20 +122,108 @@ const columns = [{ label: '姓名', prop: 'name' }];
 
 ### SearchTable Events
 
-| 事件名         | 参数              | 说明             |
-| -------------- | ----------------- | ---------------- |
-| `add`          | -                 | 点击新增按钮     |
-| `batch-delete` | `rows: any[]`     | 点击批量删除按钮 |
-| `cell-edit`    | `CellEditPayload` | 单元格编辑完成   |
+| 事件名         | 参数                 | 说明             |
+| -------------- | -------------------- | ---------------- |
+| `add`          | -                    | 点击新增按钮     |
+| `batch-delete` | `rows: T[]`          | 点击批量删除按钮 |
+| `cell-edit`    | `CellEditPayload<T>` | 单元格编辑完成   |
 
 ### SearchTable Expose
 
-| 方法/属性          | 类型                         | 说明           |
-| ------------------ | ---------------------------- | -------------- |
-| `refresh`          | `() => Promise<void>`        | 刷新当前页     |
-| `selectedRows`     | `Ref<TableRow[]>`            | 已勾选的行     |
-| `getSelectionRows` | `() => TableRow[]`           | 获取已勾选的行 |
-| `selectRows`       | `(rows: TableRow[]) => void` | 勾选指定行     |
+| 方法/属性          | 类型                  | 说明           |
+| ------------------ | --------------------- | -------------- |
+| `refresh`          | `() => Promise<void>` | 刷新当前页     |
+| `selectedRows`     | `T[]`                 | 已勾选的行     |
+| `getSelectionRows` | `() => T[]`           | 获取已勾选的行 |
+| `selectRows`       | `(rows: T[]) => void` | 勾选指定行     |
+
+`selectedRows` 暴露的是 ref，但读取时会自动解包，所以拿到的是数组本身。
+
+### 行数据类型（泛型组件）
+
+`SearchTable` 是泛型组件，行数据类型 `T` 由 `columns` 与 `fetchFn` 推断，并会一路带到插槽 props、事件参数和暴露的实例方法上：
+
+```vue
+<template>
+    <SearchTable ref="searchTableRef" :columns="columns" :fetch-fn="fetchFn">
+        <!-- data 会被推断为 User[] -->
+        <template #table="{ data }">{{ data[0]?.name }}</template>
+    </SearchTable>
+</template>
+
+<script setup lang="ts">
+import { useTemplateRef } from 'vue';
+import type { ProTableColumn, SearchTableFetchFn } from '@amaoaaaaa/search-table';
+
+interface User {
+    id: number;
+    name: string;
+}
+
+const columns: ProTableColumn<User>[] = [{ prop: 'name', label: '姓名' }];
+const fetchFn: SearchTableFetchFn<User> = async () => ({ data: [], totalCount: 0 });
+
+const searchTableRef = useTemplateRef('searchTableRef');
+</script>
+```
+
+`columns` / `fetchFn` 建议显式标注类型（如 `ProTableColumn<User>[]`、`SearchTableFetchFn<User>`），这样 `T` 才能被准确推断。
+
+> `InstanceType<typeof SearchTable>` 对泛型组件不生效（会报 `does not satisfy the constraint 'abstract new (...args: any) => any'`），需要实例类型时用 `useTemplateRef('ref')`（类型最完整），或导出的 `SearchTableInstance<T>`：
+>
+> ```ts
+> import { ref } from 'vue';
+> import type { SearchTableInstance } from '@amaoaaaaa/search-table';
+>
+> const searchTableRef = ref<SearchTableInstance<User>>();
+> ```
+
+### SearchTable Slots
+
+| 插槽名        | 插槽 props          | 说明                                                      |
+| ------------- | ------------------- | --------------------------------------------------------- |
+| `search-form` | `{ query, search }` | 搜索框右侧的更多搜索条件，`search` 表示重置到第一页并请求 |
+| `top-center`  | -                   | 顶部区域中间内容                                          |
+| `btns`        | -                   | 操作区追加按钮（排在新增 / 批量删除之后）                 |
+| `table`       | 见下方              | 替换默认的表格渲染，不传时渲染内置 `ProTable`             |
+
+#### `table` 插槽
+
+用于把默认的 `ProTable` 换成自定义表格（如卡片列表、其它表格组件），插槽 props 与传给 `ProTable` 的绑定保持一致：
+
+| 名称              | 类型                                    | 说明                              |
+| ----------------- | --------------------------------------- | --------------------------------- |
+| `data`            | `T[]`                                   | 当前页数据                        |
+| `loading`         | `boolean`                               | 加载状态（延迟 100ms，避免闪烁）  |
+| `columns`         | `ProTableColumn<T>[]`                   | 传入 `SearchTable` 的列配置       |
+| `indexOffset`     | `number`                                | 序号列的起始偏移量                |
+| `defaultSort`     | `{ prop, order }`                       | 默认排序（element-plus 排序顺序） |
+| `applyFilter`     | `(payload: ApplyFilterPayload) => void` | 应用列筛选条件                    |
+| `selectionChange` | `(rows: T[]) => void`                   | 勾选变化                          |
+| `cellEdit`        | `(payload: CellEditPayload<T>) => void` | 单元格编辑完成                    |
+| `sortChange`      | `(payload) => void`                     | 排序变化                          |
+
+其中 `T` 为行数据类型，见「行数据类型（泛型组件）」。
+
+```vue
+<template>
+    <SearchTable :columns="columns" :fetch-fn="fetchData">
+        <template #table="{ data, loading }">
+            <MyCardList
+                class="search-table__body flex-1 overflow-hidden"
+                :data="data"
+                :loading="loading"
+            />
+        </template>
+    </SearchTable>
+</template>
+```
+
+使用 `table` 插槽时需要注意：
+
+- 分页、搜索、筛选、排序仍由 `SearchTable` 管理（请求参数中的 `limit` / `offset` 也一样），插槽只负责表格区的渲染。
+- 表格区的布局类（`search-table__body flex-1 overflow-hidden`）由使用方自己维护，默认的 `ProTable` 才有这些类名。
+- 不再按容器高度自动计算每页条数：未显式传 `pageSize` 时使用默认值 `10`，并在控制台提示，需要其它条数请显式传入 `pageSize`。
 
 ### SearchTable 样式定制
 
@@ -152,22 +241,22 @@ const columns = [{ label: '姓名', prop: 'name' }];
 </style>
 ```
 
-| 类名                                   | 说明                                       |
-| -------------------------------------- | ------------------------------------------ |
-| `search-table`                         | 根容器                                     |
-| `search-table__toolbar`                | 顶部区域（搜索区 + 操作区）                |
-| `search-table__search`                 | 左侧搜索组（搜索框 + 搜索表单 + 搜索按钮） |
-| `search-table__search-input`           | 搜索输入框                                 |
-| `search-table__search-button`          | 搜索按钮                                   |
-| `search-table__actions`                | 右侧操作按钮组（新增 / 批量删除 / 插槽）   |
-| `search-table__add-button`             | 新增按钮                                   |
-| `search-table__batch-delete-button`    | 批量删除按钮                               |
-| `search-table__body`                   | 表格区域（ProTable 根节点）                |
-| `search-table__footer`                 | 底部分页区域                               |
-| `search-table__selection`              | 已选条数提示区域                           |
-| `search-table__clear-selection-button` | 清空勾选按钮                               |
-| `search-table__pagination`             | 分页组件                                   |
-| `search-table__footer-spacer`          | 分页区域右侧占位（用于保持分页居中）       |
+| 类名                                   | 说明                                                            |
+| -------------------------------------- | --------------------------------------------------------------- |
+| `search-table`                         | 根容器                                                          |
+| `search-table__toolbar`                | 顶部区域（搜索区 + 操作区）                                     |
+| `search-table__search`                 | 左侧搜索组（搜索框 + 搜索表单 + 搜索按钮）                      |
+| `search-table__search-input`           | 搜索输入框                                                      |
+| `search-table__search-button`          | 搜索按钮                                                        |
+| `search-table__actions`                | 右侧操作按钮组（新增 / 批量删除 / 插槽）                        |
+| `search-table__add-button`             | 新增按钮                                                        |
+| `search-table__batch-delete-button`    | 批量删除按钮                                                    |
+| `search-table__body`                   | 表格区域（默认为 ProTable 根节点，用 `table` 插槽时需自行添加） |
+| `search-table__footer`                 | 底部分页区域                                                    |
+| `search-table__selection`              | 已选条数提示区域                                                |
+| `search-table__clear-selection-button` | 清空勾选按钮                                                    |
+| `search-table__pagination`             | 分页组件                                                        |
+| `search-table__footer-spacer`          | 分页区域右侧占位（用于保持分页居中）                            |
 
 ### SearchTableConfigProvider 全局配置
 

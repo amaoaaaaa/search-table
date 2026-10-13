@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue';
+import { ref, h, useTemplateRef } from 'vue';
 import {
     ElButton,
     ElConfigProvider,
@@ -79,7 +79,7 @@ import {
 import { mockFetchUsers, type User } from './mock-data';
 import IconRiDownloadLine from '~icons/ri/download-line';
 
-const searchTableRef = ref<InstanceType<typeof SearchTable>>();
+const searchTableRef = useTemplateRef('searchTableRef');
 
 // 部门列表（用于搜索表单）
 const departments = ['技术部', '市场部', '销售部', '财务部', '人事部', '运营部', '产品部'];

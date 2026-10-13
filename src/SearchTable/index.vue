@@ -56,23 +56,33 @@
             </div>
         </section>
 
-        <!-- 表格区 -->
-        <ProTable
-            ref="proTableRef"
-            v-bind="props"
-            class="search-table__body flex-1 overflow-hidden"
-            :index-offset="realOffset"
+        <!-- 表格区：默认渲染 ProTable，可通过 #table 插槽替换为自定义表格 -->
+        <slot
+            name="table"
             :data="tableData"
             :loading="delayedLoading"
-            :default-sort="{
-                prop: sortState.sort,
-                order: sortState.order === 'asc' ? 'ascending' : 'descending',
-            }"
-            @apply-filter="handleApplyFilter"
-            @selection-change="handleSelectionChange"
-            @cell-edit="(...p) => emit('cell-edit', ...p)"
-            @sort-change="onSortChange"
-        />
+            :columns="props.columns"
+            :index-offset="realOffset"
+            :default-sort="tableDefaultSort"
+            :apply-filter="handleApplyFilter"
+            :selection-change="handleSelectionChange"
+            :cell-edit="handleCellEdit"
+            :sort-change="onSortChange"
+        >
+            <ProTable
+                ref="proTableRef"
+                v-bind="props"
+                class="search-table__body flex-1 overflow-hidden"
+                :index-offset="realOffset"
+                :data="tableData"
+                :loading="delayedLoading"
+                :default-sort="tableDefaultSort"
+                @apply-filter="handleApplyFilter"
+                @selection-change="handleSelectionChange"
+                @cell-edit="handleCellEdit"
+                @sort-change="onSortChange"
+            />
+        </slot>
 
         <!-- 分页区 -->
         <!-- FIX 分页点击下一页，UI变了，如果请求失败会导致 UI 和实际显示数据不一致 -->
@@ -116,12 +126,12 @@
     </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="T extends TableRow = any">
 import { ElMessage } from 'element-plus';
 import { ElButton, ElInput, ElPagination, ElText, ElTooltip } from 'element-plus';
 import { SearchTableProps } from './types';
 import ProTable from '../ProTable/index.vue';
-import { ApplyFilterPayload, CellEditPayload, TableRow } from '../ProTable/types';
+import { ApplyFilterPayload, CellEditPayload, ProTableColumn, TableRow } from '../ProTable/types';
 import { isCancel } from 'axios';
 import { cloneDeep, countBy, keys, map, pickBy, sortBy, uniq } from 'lodash-es';
 import { parseErrorReason } from '../utils/parseErrorReason';
@@ -139,13 +149,14 @@ import {
     onUnmounted,
     inject,
     useTemplateRef,
+    type Ref,
 } from 'vue';
 import IconRiSearchLine from '~icons/ri/search-line';
 import IconRiAddLine from '~icons/ri/add-line';
 import IconRiDeleteBinLine from '~icons/ri/delete-bin-line';
 import IconRiDeleteBack2Line from '~icons/ri/delete-back2-line';
 
-const props = withDefaults(defineProps<SearchTableProps>(), {
+const props = withDefaults(defineProps<SearchTableProps<T>>(), {
     showSearch: true,
     searchInputPlaceholder: '输入搜索关键词',
     searchField: 'search',
@@ -158,8 +169,46 @@ const props = withDefaults(defineProps<SearchTableProps>(), {
 
 const emit = defineEmits<{
     add: [];
-    'batch-delete': [rows: any[]];
-    'cell-edit': [payload: CellEditPayload];
+    'batch-delete': [rows: T[]];
+    'cell-edit': [payload: CellEditPayload<T>];
+}>();
+
+/**
+ * 插槽类型声明
+ *
+ * @description
+ * `table` 插槽用于替换默认的 ProTable 渲染，这里把渲染表格所需的
+ * 数据与交互回调一并声明出来，使用方在模板中可以直接获得类型提示；
+ * 同时通过 `slots.table` 判断使用方是否接管了表格渲染。
+ */
+const slots = defineSlots<{
+    /** 搜索框右侧的更多搜索条件 */
+    'search-form'?: (props: { query: Record<string, any>; search: () => void }) => any;
+    /** 顶部区域中间内容 */
+    'top-center'?: () => any;
+    /** 操作区追加按钮 */
+    btns?: () => any;
+    /** 替换默认表格 */
+    table?: (props: {
+        /** 当前页数据 */
+        data: T[];
+        /** 表格加载状态（带延迟，避免闪烁） */
+        loading: boolean;
+        /** 表格列配置 */
+        columns: ProTableColumn<T>[];
+        /** 序号列的起始偏移量 */
+        indexOffset: number;
+        /** 默认排序（element-plus 的排序顺序） */
+        defaultSort: { prop: string | number | symbol; order: 'ascending' | 'descending' };
+        /** 应用列筛选条件 */
+        applyFilter: (payload: ApplyFilterPayload) => void;
+        /** 勾选变化 */
+        selectionChange: (rows: T[]) => void;
+        /** 单元格编辑完成 */
+        cellEdit: (payload: CellEditPayload<T>) => void;
+        /** 排序变化 */
+        sortChange: (payload: { prop: string; order: 'ascending' | 'descending' | null }) => void;
+    }) => any;
 }>();
 
 const tableRef = useTemplateRef('proTableRef');
@@ -201,6 +250,26 @@ const { sortState, onSortChange } = useTableSort({
     },
 });
 
+/**
+ * 传给表格的默认排序
+ *
+ * @description
+ * 把组件内部的排序状态映射为 element-plus 的排序顺序；
+ * 通过 `table` 插槽替换表格时，使用方也可以直接复用这个值
+ */
+const tableDefaultSort = computed(() => {
+    const order: 'ascending' | 'descending' =
+        sortState.order === 'asc' ? 'ascending' : 'descending';
+
+    return {
+        prop: sortState.sort,
+        order,
+    };
+});
+
+/** 无法根据容器高度计算每页条数时的兜底值（如通过 `table` 插槽替换表格） */
+const DEFAULT_PAGE_SIZE = 10;
+
 const defaultPageSize = ref(props.pageSize ?? 0);
 const pagination = ref({
     pageSize: defaultPageSize.value,
@@ -233,7 +302,7 @@ const searchQuery = computed<string>({
 });
 const filterParams = reactive<Record<string, any>>({});
 
-const tableData = ref<any[]>([]);
+const tableData: Ref<T[]> = ref([]);
 const loading = ref(false);
 const delayedLoading = useDelayedRef(loading, 100);
 
@@ -319,6 +388,15 @@ function handleApplyFilter({ type, value, prop, col }: ApplyFilterPayload) {
     resetToFirstPage();
 }
 
+/**
+ * 单元格编辑完成，透传给使用方
+ *
+ * @param payload 单元格编辑信息
+ */
+function handleCellEdit(payload: CellEditPayload<T>) {
+    emit('cell-edit', payload);
+}
+
 const refresh = async () => {
     if (loading.value) return;
     clearSelection();
@@ -340,7 +418,10 @@ function calcMaxRow() {
     const { rowHeight, headerHeight } = globalConfig;
 
     // 获取表格容器元素并计算表格主体区域的最大高度
-    const tableWrap = tableRef.value?.$el as HTMLElement;
+    // 用 `table` 插槽替换表格时没有 ProTable 实例，无法测量高度
+    const tableWrap = tableRef.value?.$el as HTMLElement | undefined;
+    if (!tableWrap) return 0;
+
     const tableBodyMaxHeight = tableWrap.offsetHeight - headerHeight;
 
     // 根据表格主体区域最大高度和每行高度计算最大行数
@@ -352,11 +433,11 @@ function calcMaxRow() {
 // --------- 勾选功能 ---------
 
 /** 已勾选的行，用于双向绑定 */
-const selectionRows = ref<TableRow[]>([]);
+const selectionRows: Ref<T[]> = ref([]);
 const _selectionRows = computed(() => selectionRows.value);
 
 /** 跨页勾选存储 */
-const selectionStore = new SelectionStore<TableRow>(props.rowKey);
+const selectionStore = new SelectionStore<T>(props.rowKey);
 /** 标识是否正在恢复跨页勾选，用于阻止一些逻辑执行 */
 let isRestoring = false;
 
@@ -364,7 +445,7 @@ let isRestoring = false;
  * 表格勾选回调事件处理
  * @param rows
  */
-const handleSelectionChange = (rows: TableRow[]) => {
+const handleSelectionChange = (rows: T[]) => {
     // 恢复跨页勾选时候不执行
     if (isRestoring) return;
 
@@ -380,7 +461,7 @@ const handleSelectionChange = (rows: TableRow[]) => {
 
 const getSelectionRows = () => selectionRows.value;
 
-const selectRows = (rows: TableRow[]) => {
+const selectRows = (rows: T[]) => {
     handleSelectionChange(rows);
 };
 
@@ -416,7 +497,7 @@ if (props.selectable) {
  * 监测重复的 rowKey
  * @param data
  */
-function checkDuplicateRowKey(data: TableRow[]) {
+function checkDuplicateRowKey(data: T[]) {
     const rowKeys = data.map((row) => row[props.rowKey]);
     const duplicateRowKeys = keys(pickBy(countBy(rowKeys), (v) => v > 1));
 
@@ -431,11 +512,19 @@ function checkDuplicateRowKey(data: TableRow[]) {
 onMounted(() => {
     // 初始化分页大小
     if (!pagination.value.pageSize) {
-        // 计算表格中可显示的最大行数
-        const size = calcMaxRow();
+        // 用 `table` 插槽替换表格时表格高度由使用方决定，不再自动计算每页条数
+        if (slots.table) {
+            console.warn(
+                `[SearchTable] 使用 table 插槽替换表格时无法自动计算每页条数，将使用默认值 ${DEFAULT_PAGE_SIZE}，可通过 pageSize 指定`,
+            );
 
-        defaultPageSize.value = size;
-        pagination.value.pageSize = size;
+            defaultPageSize.value = DEFAULT_PAGE_SIZE;
+        } else {
+            // 计算表格中可显示的最大行数
+            defaultPageSize.value = calcMaxRow();
+        }
+
+        pagination.value.pageSize = defaultPageSize.value;
     }
 
     fetchList();
