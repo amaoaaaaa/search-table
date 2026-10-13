@@ -337,6 +337,24 @@ import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table'
 
 **工具：** `SelectionStore`, `useTableSort`, `useDelayedRef`, `parseErrorReason`
 
+## 更新日志
+
+| 版本         | 日期       | 主要变更                                                        |
+| ------------ | ---------- | --------------------------------------------------------------- |
+| 0.5.0        | 2026-10-13 | 表格区支持 `#table` 插槽替换；`SearchTable` 改为泛型组件        |
+| 0.4.0        | 2026-09-30 | `SearchTableConfigProvider` 支持全局分页与搜索区域配置          |
+| 0.3.0        | 2026-09-28 | 新增全局配置组件 `SearchTableConfigProvider`（行高 / 表头高度） |
+| 0.2.3        | 2026-09-28 | 各区域补充可外部覆盖的 BEM 类名                                 |
+| 0.2.2        | 2026-09-28 | 分页接口返回类型兼容更多可选属性                                |
+| 0.2.1        | 2026-08-10 | 补充仓库信息                                                    |
+| 0.2.0        | 2026-08-10 | 新增 `searchField`，支持自定义搜索框绑定的字段名                |
+| 0.1.3        | 2026-06-29 | 重构类型导出，新增 `SearchTableInstance` 等类型                 |
+| 0.1.2        | 2026-06-26 | 修复模板 ref 重名引起的 Vue 控制台警告                          |
+| 0.1.1        | 2026-06-25 | 修复外部依赖未排除的打包问题                                    |
+| 0.1.0-beta.1 | 2026-06-17 | 首个版本，从完整项目中抽离 SearchTable / ProTable               |
+
+完整变更记录见 [CHANGELOG.md](./CHANGELOG.md)。
+
 ## License
 
 MIT

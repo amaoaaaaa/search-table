@@ -22,7 +22,8 @@
         "component"
     ],
     "files": [
-        "dist"
+        "dist",
+        "CHANGELOG.md"
     ],
     "main": "./dist/search-table.js",
     "module": "./dist/search-table.js",
