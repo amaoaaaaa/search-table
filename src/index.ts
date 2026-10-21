@@ -9,6 +9,9 @@ export { default as ProTable } from './ProTable/index.vue';
 // 组件实例类型
 export type { ProTableInstance } from './ProTable';
 
+// 排序类型
+export type { SortState } from './SearchTable/useTableSort';
+
 // SearchTable 类型
 export type {
     SearchTableProps,

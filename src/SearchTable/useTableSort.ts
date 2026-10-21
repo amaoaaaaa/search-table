@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual, merge } from 'lodash-es';
+import { cloneDeep, isEqual } from 'lodash-es';
 import { reactive } from 'vue';
 
 export interface SortState<T extends Record<string, any> = Record<string, any>> {
@@ -9,25 +9,40 @@ export interface SortState<T extends Record<string, any> = Record<string, any>> 
     /**
      * 排序字段
      */
-    sort: keyof T;
+    sort: Extract<keyof T, string>;
 }
 
-export interface UseTableSortOption {
-    defaultSort?: SortState;
+export interface UseTableSortOption<T extends Record<string, any> = Record<string, any>> {
+    defaultSort?: SortState<T>;
     fetchFn: () => void;
     onReset?: () => void;
 }
 
-export function useTableSort({ defaultSort, fetchFn, onReset }: UseTableSortOption) {
-    const DEFAULT_SORT: SortState = merge(
-        {
-            order: '',
-            sort: '',
-        },
-        defaultSort,
-    );
+/**
+ * 组件内部的排序状态
+ *
+ * @description
+ * 未配置默认排序时，`sort` 和 `order` 需要允许空值；
+ * 用户配置的 `defaultSort` 仍通过 `SortState<T>` 约束为实际行字段。
+ */
+interface InternalSortState {
+    order: 'asc' | 'desc' | '';
+    sort: string;
+}
 
-    const sortState = reactive<SortState>(cloneDeep(DEFAULT_SORT));
+export function useTableSort<T extends Record<string, any> = Record<string, any>>({
+    defaultSort,
+    fetchFn,
+    onReset,
+}: UseTableSortOption<T>) {
+    const DEFAULT_SORT: InternalSortState = defaultSort
+        ? cloneDeep(defaultSort)
+        : {
+              order: '',
+              sort: '',
+          };
+
+    const sortState = reactive<InternalSortState>(cloneDeep(DEFAULT_SORT));
     let beforeSortState = cloneDeep(sortState);
 
     function onSortChange({

@@ -116,9 +116,22 @@ const columns = [{ label: '姓名', prop: 'name' }];
 | `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮           |
 | `pageSize`               | `number`                             | 自动计算           | 每页条数                       |
 | `elPaginationProps`      | `SearchTablePaginationProps`         | -                  | 分页组件视觉配置（见下方说明） |
-| `defaultSort`            | `SortState`                          | -                  | 默认排序                       |
+| `defaultSort`            | `SortState`                          | -                  | 默认排序（支持后端排序）       |
 | `selectable`             | `boolean \| (row, index) => boolean` | -                  | 是否可勾选                     |
 | `searchParamsHandler`    | `(params) => params`                 | -                  | 搜索参数处理函数               |
+
+`defaultSort` 的 `sort`、`order` 会作为请求参数传给 `fetchFn`。使用后端排序时，排序字段对应的列需设置 `sortable: 'custom'`，列 `prop` 与 `sort` 保持一致；排序变化后组件会重新请求后端，由后端返回排序后的分页数据。
+
+`SortState<T>` 会根据行数据类型约束排序字段。推荐显式标注，以便获得实际字段的自动补全：
+
+```ts
+import type { SortState } from '@amaoaaaaa/search-table';
+
+const defaultSort: SortState<User> = {
+    sort: 'createTime',
+    order: 'desc',
+};
+```
 
 ### SearchTable Events
 

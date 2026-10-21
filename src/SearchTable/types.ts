@@ -102,8 +102,13 @@ export type SearchTableProps<T extends TableRow = any> = Omit<
 
     /**
      * 默认排序
+     *
+     * @description
+     * 仅用于初始化排序状态，并随首次及后续请求以 `sort`、`order` 参数传给 `fetchFn`。
+     * 使用后端排序时，对应表格列需设置 `sortable: 'custom'`，且列的 `prop` 应与
+     * `sort` 保持一致；排序变化后组件会重新请求后端，由后端返回排序后的分页数据。
      */
-    defaultSort?: SortState;
+    defaultSort?: SortState<T>;
 
     fetchFn: SearchTableFetchFn<T>;
 

@@ -75,6 +75,7 @@ import {
     type SearchTableFetchFn,
     type ProTableColumn,
     type CellEditPayload,
+    type SortState,
 } from '@amaoaaaaa/search-table';
 import { mockFetchUsers, type User } from './mock-data';
 import IconRiDownloadLine from '~icons/ri/download-line';
@@ -98,7 +99,7 @@ const fetchFn: SearchTableFetchFn<User> = (params, options) => {
     return mockFetchUsers(mergedParams, options);
 };
 
-const defaultSort = { sort: 'id', order: 'asc' as const };
+const defaultSort: SortState<User> = { sort: 'id', order: 'asc' };
 
 // 过滤选项
 const statusFilterOptions = [

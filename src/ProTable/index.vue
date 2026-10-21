@@ -3,11 +3,15 @@
         <el-table
             ref="elTableRef"
             :data="data"
+            :default-sort="defaultSort"
             border
             class="pro-table"
             height="100%"
             :row-key="rowKey"
             @selection-change="(rows) => emit('selectionChange', rows)"
+            @sort-change="
+                (payload) => emit('sortChange', { prop: payload.prop ?? '', order: payload.order })
+            "
         >
             <!-- 选择列 -->
             <el-table-column
@@ -356,6 +360,7 @@ const emit = defineEmits<{
     applyFilter: [ApplyFilterPayload];
     selectionChange: [newSelection: TableRow[]];
     'cell-edit': [payload: CellEditPayload];
+    sortChange: [payload: { prop: string; order: 'ascending' | 'descending' | null }];
 }>();
 
 const tableRef = useTemplateRef('elTableRef');

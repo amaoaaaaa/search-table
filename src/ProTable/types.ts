@@ -1,4 +1,5 @@
 import { MaybeRefOrGetter, VNode } from 'vue';
+import type { Sort } from 'element-plus';
 import {
     TableColumnProps,
     TableColumnCtx,
@@ -145,6 +146,13 @@ export type ProTableColumn<T extends TableRow = TableRow> = Partial<
 export type ProTableProps<T extends TableRow = any> = {
     data: T[];
     columns: ProTableColumn<T>[];
+
+    /**
+     * 默认排序
+     *
+     * @description 使用 Element Plus 的排序格式，`prop` 需与可排序列的 `prop` 一致
+     */
+    defaultSort?: Sort;
 
     /**
      * 行数据的 Key，属性值必须唯一
