@@ -38,7 +38,7 @@
                     type="primary"
                     @click="emit('add')"
                 >
-                    <icon-ri-add-line />新增
+                    <icon-ri-add-line />{{ realAddButtonText }}
                 </el-button>
 
                 <el-button
@@ -129,7 +129,7 @@
 <script lang="ts" setup generic="T extends TableRow = any">
 import { ElMessage } from 'element-plus';
 import { ElButton, ElInput, ElPagination, ElText, ElTooltip } from 'element-plus';
-import { SearchTableProps } from './types';
+import { SearchTableFetchSuccessPayload, SearchTableProps } from './types';
 import ProTable from '../ProTable/index.vue';
 import { ApplyFilterPayload, CellEditPayload, ProTableColumn, TableRow } from '../ProTable/types';
 import { isCancel } from 'axios';
@@ -171,6 +171,7 @@ const emit = defineEmits<{
     add: [];
     'batch-delete': [rows: T[]];
     'cell-edit': [payload: CellEditPayload<T>];
+    'fetch-success': [payload: SearchTableFetchSuccessPayload<T>];
 }>();
 
 /**
@@ -228,10 +229,19 @@ const paginationProps = computed(() =>
 /**
  * 搜索按钮文字
  *
- * 优先取实例的 `searchButtonText`，其次取全局配置的 `searchProps.buttonText`
+ * 优先取实例的 `searchButtonText`，其次取全局配置的 `searchProps.searchButtonText`
  */
 const realSearchButtonText = computed(
-    () => props.searchButtonText ?? globalConfig.searchProps.buttonText,
+    () => props.searchButtonText ?? globalConfig.searchProps.searchButtonText,
+);
+
+/**
+ * 新增按钮文字
+ *
+ * 优先取实例的 `addButtonText`，其次取全局配置的 `searchProps.addButtonText`
+ */
+const realAddButtonText = computed(
+    () => props.addButtonText ?? globalConfig.searchProps.addButtonText,
 );
 
 const { sortState, onSortChange } = useTableSort({
@@ -349,6 +359,8 @@ async function fetchList() {
             // 监测重复的 rowKey
             checkDuplicateRowKey(data);
         }
+
+        emit('fetch-success', { params: paramsRes, data });
     } catch (error) {
         // 用户取消，则直接结束，不需要报错
         // 也不能关 loading，否则会导致下一次请求没有 loading

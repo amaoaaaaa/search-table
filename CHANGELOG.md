@@ -4,6 +4,22 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.6.0] - 2026-11-03
+
+### 新增
+
+- `ProTableAction` 新增 `collapsed` 配置，可将不常用操作按钮自动收纳到“更多操作”下拉菜单中。
+- 搜索区的“新增”按钮支持通过实例属性 `addButtonText` 或全局 `searchProps.addButtonText` 自定义文本。
+- `SearchTable` 新增 `fetch-success` 事件，请求成功后以 `{ params, data }` 对象向页面透传最终请求参数和列表数据。
+
+### 变更
+
+- `SearchTableSearchProps.buttonText` 更名为 `searchButtonText`，与实例属性命名保持一致；旧字段暂时保留为废弃兼容项，新字段优先，使用旧字段时会在控制台输出迁移警告。
+
+### 修复
+
+- 修复展开按钮与收纳按钮混用时操作列渲染不一致的问题，收纳按钮始终显示在操作列最后。
+
 ## [0.5.1] - 2026-10-21
 
 ### 修复

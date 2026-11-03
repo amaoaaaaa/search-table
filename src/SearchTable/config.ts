@@ -39,10 +39,14 @@ export interface SearchTableConfigProviderProps {
      *
      * 会被 SearchTable 上同名的实例配置覆盖
      *
-     * @default { buttonText: '搜索' }
+     * @default { searchButtonText: '搜索', addButtonText: '新增' }
      */
     searchProps?: SearchTableSearchProps;
 }
+
+type ResolvedSearchTableSearchProps = Required<
+    Pick<SearchTableSearchProps, 'searchButtonText' | 'addButtonText'>
+>;
 
 /**
  * 解析后的组件配置
@@ -58,7 +62,7 @@ export interface SearchTableConfig {
     paginationProps: SearchTablePaginationProps;
 
     /** 解析后的搜索区域配置 */
-    searchProps: Required<SearchTableSearchProps>;
+    searchProps: ResolvedSearchTableSearchProps;
 }
 
 /**
@@ -78,8 +82,9 @@ const DEFAULT_PAGINATION_PROPS: Required<
 /**
  * 搜索区域的默认配置
  */
-const DEFAULT_SEARCH_PROPS: Required<SearchTableSearchProps> = {
-    buttonText: '搜索',
+const DEFAULT_SEARCH_PROPS: ResolvedSearchTableSearchProps = {
+    searchButtonText: '搜索',
+    addButtonText: '新增',
 };
 
 /**
@@ -152,9 +157,17 @@ export function mergePaginationProps(
  * @param config 原始配置
  * @returns 解析后的搜索区域配置
  */
-function resolveSearchProps(config?: SearchTableSearchProps): Required<SearchTableSearchProps> {
+function resolveSearchProps(config?: SearchTableSearchProps): ResolvedSearchTableSearchProps {
+    if (config?.buttonText !== undefined) {
+        console.warn(
+            '[SearchTable] `searchProps.buttonText` 已弃用，请改用 `searchProps.searchButtonText`。',
+        );
+    }
+
     return {
-        buttonText: config?.buttonText ?? DEFAULT_SEARCH_PROPS.buttonText,
+        searchButtonText:
+            config?.searchButtonText ?? config?.buttonText ?? DEFAULT_SEARCH_PROPS.searchButtonText,
+        addButtonText: config?.addButtonText ?? DEFAULT_SEARCH_PROPS.addButtonText,
     };
 }
 

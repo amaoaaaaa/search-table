@@ -38,7 +38,22 @@ export interface SearchTableSearchProps {
      *
      * @default '搜索'
      */
+    searchButtonText?: string;
+
+    /**
+     * 搜索按钮的文字
+     *
+     * @default '搜索'
+     * @deprecated 请改用 `searchButtonText`，该属性将在后续版本移除。
+     */
     buttonText?: string;
+
+    /**
+     * 新增按钮的文字
+     *
+     * @default '新增'
+     */
+    addButtonText?: string;
 }
 
 export type SearchTableProps<T extends TableRow = any> = Omit<
@@ -61,11 +76,20 @@ export type SearchTableProps<T extends TableRow = any> = Omit<
     /**
      * 搜索按钮的文字
      *
-     * 优先级高于 `SearchTableConfigProvider` 中的 `searchProps.buttonText`
+     * 优先级高于 `SearchTableConfigProvider` 中的 `searchProps.searchButtonText`
      *
      * @default '搜索'
      */
     searchButtonText?: string;
+
+    /**
+     * 新增按钮的文字
+     *
+     * 优先级高于 `SearchTableConfigProvider` 中的 `searchProps.addButtonText`
+     *
+     * @default '新增'
+     */
+    addButtonText?: string;
 
     /**
      * 搜索框绑定到查询参数的字段名
@@ -161,6 +185,21 @@ export type SearchTableFetchFn<T = any> = (
         signal?: AbortSignal;
     },
 ) => Promise<PageResp<T>>;
+
+/**
+ * SearchTable 请求成功事件的参数
+ */
+export interface SearchTableFetchSuccessPayload<T = any> {
+    /**
+     * 经过 `searchParamsHandler` 处理的最终请求参数
+     */
+    params: PageParams;
+
+    /**
+     * 接口返回的当前页列表数据
+     */
+    data: T[];
+}
 
 /**
  * 通用分页响应结构

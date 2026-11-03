@@ -15,6 +15,7 @@
                     selectable
                     show-add-button
                     show-batch-delete-button
+                    add-button-text="添加"
                     @add="handleAdd"
                     @batch-delete="handleBatchDelete"
                     @cell-edit="handleCellEdit"
@@ -182,6 +183,7 @@ const columns: ProTableColumn<User>[] = [
                 text: '删除',
                 type: 'danger',
                 confirmText: true,
+                collapsed: true,
                 handler: (row: User) => {
                     ElMessage.success(`已删除用户：${row.name}`);
                 },

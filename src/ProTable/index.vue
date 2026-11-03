@@ -253,56 +253,94 @@
                         </template>
                     </div>
 
-                    <!-- 遍历筛选后需要显示的按钮 -->
-                    <template v-for="action of filteredActions(col, row)" :key="action.text">
-                        <!-- 需要二次确认 -->
-                        <el-popconfirm
-                            v-if="action.text === '删除' || action.confirmText"
-                            placement="top"
-                            :hide-after="0"
-                            popper-style="width: unset; min-width: 150px;"
-                            :title="
-                                isBoolean(action.confirmText)
-                                    ? `是否确认${action.text}？`
-                                    : isFunction(action.confirmText)
-                                      ? action.confirmText(row)
-                                      : (action.confirmText ?? `是否确认${action.text}？`)
-                            "
-                            @confirm="
-                                action.visibility === 'hidden' ? undefined : action.handler(row)
-                            "
-                        >
-                            <template #reference>
-                                <el-button
-                                    link
-                                    :type="action.type ?? 'primary'"
-                                    :style="getActionButtonStyle(action, action.visibility)"
-                                    :disabled="
-                                        isFunction(action.disabled)
-                                            ? action.disabled(row)
-                                            : action.disabled
-                                    "
-                                >
-                                    {{ action.text }}
-                                </el-button>
-                            </template>
-                        </el-popconfirm>
+                    <!-- 一次解析当前行操作，确保收起按钮始终收纳在操作列最后 -->
+                    <template
+                        v-for="actionGroup of [getActionGroup(col, row)]"
+                        :key="actionGroup.key"
+                    >
+                        <!-- 未收起的按钮 -->
+                        <template v-for="action of actionGroup.inline" :key="action.text">
+                            <!-- 需要二次确认 -->
+                            <el-popconfirm
+                                v-if="requiresConfirmation(action)"
+                                placement="top"
+                                :hide-after="0"
+                                popper-style="width: unset; min-width: 150px;"
+                                :title="getActionConfirmText(action, row)"
+                                @confirm="
+                                    action.visibility === 'hidden' ? undefined : action.handler(row)
+                                "
+                            >
+                                <template #reference>
+                                    <el-button
+                                        link
+                                        :type="action.type ?? 'primary'"
+                                        :style="getActionButtonStyle(action, action.visibility)"
+                                        :disabled="
+                                            isFunction(action.disabled)
+                                                ? action.disabled(row)
+                                                : action.disabled
+                                        "
+                                    >
+                                        {{ action.text }}
+                                    </el-button>
+                                </template>
+                            </el-popconfirm>
 
-                        <!-- 不需要确认 -->
-                        <el-button
-                            v-else
-                            link
-                            :type="action.type ?? 'primary'"
-                            :style="getActionButtonStyle(action, action.visibility)"
-                            :disabled="
-                                isFunction(action.disabled) ? action.disabled(row) : action.disabled
-                            "
-                            @click="
-                                action.visibility === 'hidden' ? undefined : action.handler(row)
-                            "
+                            <!-- 不需要确认 -->
+                            <el-button
+                                v-else
+                                link
+                                :type="action.type ?? 'primary'"
+                                :style="getActionButtonStyle(action, action.visibility)"
+                                :disabled="
+                                    isFunction(action.disabled)
+                                        ? action.disabled(row)
+                                        : action.disabled
+                                "
+                                @click="
+                                    action.visibility === 'hidden' ? undefined : action.handler(row)
+                                "
+                            >
+                                {{ action.text }}
+                            </el-button>
+                        </template>
+
+                        <!-- 收纳到更多操作中的按钮 -->
+                        <el-dropdown
+                            v-if="actionGroup.collapsed.length"
+                            class="pro-table__more-actions"
+                            trigger="click"
+                            placement="bottom-end"
                         >
-                            {{ action.text }}
-                        </el-button>
+                            <el-button
+                                link
+                                type="primary"
+                                aria-label="更多操作"
+                                title="更多操作"
+                                class="my-1.5"
+                            >
+                                ···
+                            </el-button>
+
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item
+                                        v-for="action of actionGroup.collapsed"
+                                        :key="action.text"
+                                        :disabled="
+                                            isFunction(action.disabled)
+                                                ? action.disabled(row)
+                                                : action.disabled
+                                        "
+                                        :style="getActionButtonStyle(action, action.visibility)"
+                                        @click="handleMoreAction(action, row)"
+                                    >
+                                        {{ action.text }}
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                     </template>
                 </template>
             </el-table-column>
@@ -330,7 +368,11 @@ import {
     ElCheckbox,
     ElCheckboxGroup,
     ElDatePicker,
+    ElDropdown,
+    ElDropdownItem,
+    ElDropdownMenu,
     ElInput,
+    ElMessageBox,
     ElPopconfirm,
     ElPopover,
     ElRadio,
@@ -410,12 +452,16 @@ function applyFilter(prop: string, type: FilterType, col: ProTableColumn) {
     });
 }
 
-function filteredActions(col: ProTableColumn, row: any) {
+type ResolvedProTableAction = ProTableAction & {
+    visibility: ActionButtonVisibility;
+};
+
+function filteredActions(col: ProTableColumn, row: TableRow): ResolvedProTableAction[] {
     const actions = isFunction(col.actions) ? col.actions(row) : col.actions;
 
     return (
-        actions
-            ?.map((action) => {
+        (actions ?? [])
+            .map((action): ResolvedProTableAction => {
                 // 计算 visibility 结果
                 const visibilityRes = isFunction(action.visibility)
                     ? action.visibility(row)
@@ -426,6 +472,64 @@ function filteredActions(col: ProTableColumn, row: any) {
             // 过滤显示的按钮
             .filter((action) => action.visibility !== false)
     );
+}
+
+interface ResolvedProTableActionGroup {
+    key: string;
+    inline: ResolvedProTableAction[];
+    collapsed: ResolvedProTableAction[];
+}
+
+/**
+ * 按显示位置拆分当前行操作
+ *
+ * 同一次解析同时生成普通按钮和收起菜单，避免两条渲染路径得到不一致的按钮集合。
+ */
+function getActionGroup(col: ProTableColumn, row: TableRow): ResolvedProTableActionGroup {
+    const actions = filteredActions(col, row);
+
+    return {
+        key: 'actions',
+        inline: actions.filter((action) => !action.collapsed),
+        collapsed: actions.filter((action) => action.collapsed),
+    };
+}
+
+function requiresConfirmation(action: ProTableAction) {
+    return action.text === '删除' || Boolean(action.confirmText);
+}
+
+/**
+ * 获取操作按钮的二次确认文案
+ */
+function getActionConfirmText(action: ProTableAction, row: TableRow) {
+    return isBoolean(action.confirmText)
+        ? `是否确认${action.text}？`
+        : isFunction(action.confirmText)
+          ? action.confirmText(row)
+          : (action.confirmText ?? `是否确认${action.text}？`);
+}
+
+/**
+ * 执行更多菜单中的操作
+ *
+ * 下拉菜单点击后会立即关闭，因此二次确认使用 MessageBox，
+ * 避免 Popconfirm 与下拉菜单的层级和关闭行为互相影响。
+ */
+async function handleMoreAction(action: ResolvedProTableAction, row: TableRow) {
+    if (action.visibility === 'hidden') return;
+
+    if (requiresConfirmation(action)) {
+        try {
+            await ElMessageBox.confirm(getActionConfirmText(action, row), '提示', {
+                type: 'warning',
+            });
+        } catch {
+            return;
+        }
+    }
+
+    action.handler(row);
 }
 
 /**
@@ -526,5 +630,9 @@ defineExpose({
     thead th {
         font-weight: normal;
     }
+}
+
+.pro-table__more-actions:not(:first-child) {
+    margin-left: 12px;
 }
 </style>

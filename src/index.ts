@@ -18,6 +18,7 @@ export type {
     SearchTablePaginationProps,
     SearchTableSearchProps,
     SearchTableFetchFn,
+    SearchTableFetchSuccessPayload,
     PageParams,
     PageResp,
 } from './SearchTable/types';

@@ -50,6 +50,13 @@ export interface ProTableAction<T extends TableRow = TableRow> {
      */
     disabled?: boolean | ((row: T) => boolean);
 
+    /**
+     * 是否收纳到“更多操作”下拉菜单中
+     *
+     * @default false
+     */
+    collapsed?: boolean;
+
     handler: (row: T) => void;
 
     /**

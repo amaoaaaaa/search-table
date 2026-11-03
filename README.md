@@ -51,6 +51,7 @@ npm install vue element-plus axios lodash-es
         :fetch-fn="fetchData"
         show-add-button
         show-batch-delete-button
+        add-button-text="添加"
         @add="handleAdd"
         @batch-delete="handleBatchDelete"
     />
@@ -100,6 +101,24 @@ const columns = [{ label: '姓名', prop: 'name' }];
 </script>
 ```
 
+#### 操作按钮收纳
+
+给不常用的操作按钮添加 `collapsed: true`，表格会自动将其收纳到 `···` 更多操作菜单中；只有存在收纳按钮时才会显示该菜单。
+
+```ts
+const columns: ProTableColumn<User>[] = [
+    {
+        label: '操作',
+        actions: [
+            { text: '编辑', handler: (row) => openEditor(row) },
+            { text: '删除', collapsed: true, confirmText: true, handler: (row) => remove(row) },
+        ],
+    },
+];
+```
+
+`collapsed` 按钮仍支持 `visibility`、`disabled`、`confirmText` 等配置。
+
 ## API
 
 ### SearchTable Props
@@ -111,6 +130,7 @@ const columns = [{ label: '姓名', prop: 'name' }];
 | `showSearch`             | `boolean`                            | `true`             | 是否显示搜索区域               |
 | `searchInputPlaceholder` | `string`                             | `"输入搜索关键词"` | 搜索框占位文本                 |
 | `searchButtonText`       | `string`                             | `"搜索"`           | 搜索按钮文字（优先于全局配置） |
+| `addButtonText`          | `string`                             | `"新增"`           | 新增按钮文字（优先于全局配置） |
 | `searchField`            | `string`                             | `"search"`         | 搜索框绑定到查询参数的字段名   |
 | `showAddButton`          | `boolean`                            | `false`            | 是否显示新增按钮               |
 | `showBatchDeleteButton`  | `boolean`                            | `false`            | 是否显示批量删除按钮           |
@@ -135,11 +155,14 @@ const defaultSort: SortState<User> = {
 
 ### SearchTable Events
 
-| 事件名         | 参数                 | 说明             |
-| -------------- | -------------------- | ---------------- |
-| `add`          | -                    | 点击新增按钮     |
-| `batch-delete` | `rows: T[]`          | 点击批量删除按钮 |
-| `cell-edit`    | `CellEditPayload<T>` | 单元格编辑完成   |
+| 事件名          | 参数                                | 说明                                 |
+| --------------- | ----------------------------------- | ------------------------------------ |
+| `add`           | -                                   | 点击新增按钮                         |
+| `batch-delete`  | `rows: T[]`                         | 点击批量删除按钮                     |
+| `cell-edit`     | `CellEditPayload<T>`                | 单元格编辑完成                       |
+| `fetch-success` | `SearchTableFetchSuccessPayload<T>` | 数据请求成功后透传最终参数和列表数据 |
+
+`fetch-success` 以单个对象透传：`{ params, data }`。其中 `params` 是经过 `searchParamsHandler` 处理的最终请求参数，`data` 是接口返回的当前页列表数据。
 
 ### SearchTable Expose
 
@@ -283,7 +306,7 @@ const searchTableRef = useTemplateRef('searchTableRef');
         row-height="48"
         header-height="56px"
         :pagination-props="{ layout: 'total, prev, pager, next, jumper', pagerCount: 7 }"
-        :search-props="{ buttonText: '查询' }"
+        :search-props="{ searchButtonText: '查询', addButtonText: '创建' }"
     >
         <SearchTable :columns="columns" :fetch-fn="fetchData" />
     </SearchTableConfigProvider>
@@ -299,7 +322,7 @@ import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table'
 | `rowHeight`       | `number \| string`           | `40`                                                                      | 表格行高（px），用于计算每页条数 |
 | `headerHeight`    | `number \| string`           | `40`                                                                      | 表头高度（px），用于计算每页条数 |
 | `paginationProps` | `SearchTablePaginationProps` | `{ background: true, layout: 'total, sizes, prev, pager, next, jumper' }` | 分页组件视觉配置                 |
-| `searchProps`     | `SearchTableSearchProps`     | `{ buttonText: '搜索' }`                                                  | 搜索区域配置                     |
+| `searchProps`     | `SearchTableSearchProps`     | `{ searchButtonText: '搜索', addButtonText: '新增' }`                     | 搜索区域配置                     |
 
 取值规则：
 
@@ -308,7 +331,7 @@ import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table'
 - 无法解析或非正数（如 `'abc'`、`''`、`0`、`Infinity`）会回退默认值 `40`。
 - `layout` 与 element-plus 分页组件一致，可按需增减 `total`、`sizes`、`jumper` 等；传空字符串会回退默认布局。
 - 分页配置的优先级：`elPaginationProps`（实例级）> `paginationProps`（全局）> 默认配置；值为 `undefined` 的字段不会覆盖低优先级的值。
-- 搜索区域的配置统一放在 `searchProps` 对象里，当前支持 `buttonText`（搜索按钮文字），后续新增配置直接往对象里加字段即可；优先级：`searchButtonText`（实例级）> `searchProps.buttonText`（全局）> 默认值。
+- 搜索区域的配置统一放在 `searchProps` 对象里，当前支持 `searchButtonText`（搜索按钮文字）和 `addButtonText`（新增按钮文字），后续新增配置直接往对象里加字段即可；实例级配置优先级高于全局配置，最后回退默认值。
 - 只影响未显式传入 `pageSize` 的实例；配置在实例挂载时读取一次，运行中修改 props 不会让已挂载实例重新计算。
 
 `SearchTablePaginationProps` 是从 element-plus `PaginationProps` 中 Pick 出来的子集，保证与 `el-pagination` 类型一致，支持以下字段：
@@ -338,9 +361,12 @@ import { SearchTable, SearchTableConfigProvider } from '@amaoaaaaa/search-table'
 
 `SearchTableSearchProps` 目前支持以下字段，后续新增搜索区配置会继续往这个对象里加：
 
-| 字段         | 说明                                                          |
-| ------------ | ------------------------------------------------------------- |
-| `buttonText` | 搜索按钮文字，默认 `搜索`；实例级可用 `searchButtonText` 覆盖 |
+| 字段               | 说明                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| `searchButtonText` | 搜索按钮文字，默认 `搜索`；实例级可用 `searchButtonText` 覆盖 |
+| `addButtonText`    | 新增按钮文字，默认 `新增`；实例级可用 `addButtonText` 覆盖    |
+
+为兼容旧版本，全局配置仍接受 `buttonText`，但该字段已废弃，使用时会输出迁移警告；同时传入时 `searchButtonText` 优先。
 
 ## 导出清单
 
