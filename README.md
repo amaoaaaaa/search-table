@@ -166,12 +166,12 @@ const defaultSort: SortState<User> = {
 
 ### SearchTable Expose
 
-| 方法/属性          | 类型                  | 说明           |
-| ------------------ | --------------------- | -------------- |
-| `refresh`          | `() => Promise<void>` | 刷新当前页     |
-| `selectedRows`     | `T[]`                 | 已勾选的行     |
-| `getSelectionRows` | `() => T[]`           | 获取已勾选的行 |
-| `selectRows`       | `(rows: T[]) => void` | 勾选指定行     |
+| 方法/属性          | 类型                  | 说明                                           |
+| ------------------ | --------------------- | ---------------------------------------------- |
+| `refresh`          | `() => Promise<void>` | 刷新当前页；成功后清除未禁用勾选，保留禁用勾选 |
+| `selectedRows`     | `T[]`                 | 已勾选的行                                     |
+| `getSelectionRows` | `() => T[]`           | 获取已勾选的行                                 |
+| `selectRows`       | `(rows: T[]) => void` | 勾选指定行                                     |
 
 `selectedRows` 暴露的是 ref，但读取时会自动解包，所以拿到的是数组本身。
 

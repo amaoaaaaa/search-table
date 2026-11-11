@@ -13,7 +13,7 @@ import type { TableRow } from '../ProTable/types';
  */
 export interface SearchTableInstance<T extends TableRow = any> {
     /**
-     * 刷新当前页
+     * 刷新当前页；成功后清除未禁用勾选，保留禁用勾选
      */
     refresh: () => Promise<void>;
 

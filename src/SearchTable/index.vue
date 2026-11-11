@@ -102,7 +102,7 @@
                             type="danger"
                             text
                             class="search-table__clear-selection-button ml-1 !px-2"
-                            @click="clearSelection"
+                            @click="clearSelectableSelection"
                         >
                             <icon-ri-delete-back-2-line />
                         </el-button>
@@ -318,7 +318,7 @@ const delayedLoading = useDelayedRef(loading, 100);
 
 let abortController: AbortController | null = null;
 
-async function fetchList() {
+async function fetchList(): Promise<boolean> {
     // 取消上一次请求
     abortController?.abort();
     abortController = new AbortController();
@@ -361,16 +361,18 @@ async function fetchList() {
         }
 
         emit('fetch-success', { params: paramsRes, data });
+        loading.value = false;
+        return true;
     } catch (error) {
         // 用户取消，则直接结束，不需要报错
         // 也不能关 loading，否则会导致下一次请求没有 loading
-        if (isCancel(error)) return;
+        if (isCancel(error)) return false;
 
         console.error('[SearchTable] 获取数据失败', error);
         ElMessage.error('表格数据加载失败：' + parseErrorReason(error));
+        loading.value = false;
+        return false;
     }
-
-    loading.value = false;
 }
 
 /**
@@ -411,8 +413,13 @@ function handleCellEdit(payload: CellEditPayload<T>) {
 
 const refresh = async () => {
     if (loading.value) return;
-    clearSelection();
-    await fetchList();
+
+    const success = await fetchList();
+    if (!success) return;
+
+    // 等待新数据完成渲染后再同步当前页的可勾选状态
+    await nextTick();
+    clearSelectableSelection();
 };
 
 /**
@@ -453,16 +460,22 @@ const selectionStore = new SelectionStore<T>(props.rowKey);
 /** 标识是否正在恢复跨页勾选，用于阻止一些逻辑执行 */
 let isRestoring = false;
 
+/** 获取行的可勾选状态，跨页程序化选择传入 -1 */
+const isRowSelectable = (row: T, index: number) => {
+    const selectable = props.selectable;
+    return typeof selectable === 'function' ? selectable(row, index) : selectable === true;
+};
+
 /**
  * 表格勾选回调事件处理
- * @param rows
+ * @param rows 当前页勾选行
  */
 const handleSelectionChange = (rows: T[]) => {
     // 恢复跨页勾选时候不执行
     if (isRestoring) return;
 
     // 同步到跨页勾选存储
-    selectionStore.syncPage(tableData.value, rows);
+    selectionStore.syncPage(tableData.value, rows, isRowSelectable);
 
     // 更新双向绑定
     selectionRows.value = selectionStore.values;
@@ -477,10 +490,23 @@ const selectRows = (rows: T[]) => {
     handleSelectionChange(rows);
 };
 
-const clearSelection = () => {
-    tableRef.value?.tableInstance?.clearSelection();
-    selectionRows.value = [];
-    selectionStore.clear();
+/**
+ * 清空未禁用的勾选，保留禁用选择
+ *
+ * @description 禁用行没有可替换的新数据时仍会保留最近一次的可勾选状态。
+ */
+const clearSelectableSelection = () => {
+    // 清空前重新计算当前页状态，处理行状态发生变化的情况
+    selectionStore.syncSelectable(tableData.value, isRowSelectable);
+
+    const table = tableRef.value?.tableInstance;
+    const rowsToDeselect = (table?.getSelectionRows() ?? []).filter((row) =>
+        selectionStore.isSelectable(row[props.rowKey]),
+    );
+
+    selectionStore.clearSelectable();
+    rowsToDeselect.forEach((row) => table?.toggleRowSelection(row, false));
+    selectionRows.value = selectionStore.values;
 };
 
 if (props.selectable) {
@@ -492,11 +518,18 @@ if (props.selectable) {
         await nextTick();
 
         // 恢复已勾选的行
-        selectionStore.restorePageSelection(tableData.value, (row, selected) => {
-            tableRef.value?.tableInstance?.toggleRowSelection(row, selected);
-        });
+        selectionStore.restorePageSelection(
+            tableData.value,
+            (row, selected) => {
+                tableRef.value?.tableInstance?.toggleRowSelection(row, selected);
+            },
+            isRowSelectable,
+        );
 
         await nextTick();
+
+        // 恢复后同步最新行数据
+        selectionRows.value = selectionStore.values;
 
         // 允许触发 handleSelectionChange
         isRestoring = false;
@@ -549,7 +582,7 @@ onUnmounted(() => {
 
 defineExpose({
     /**
-     * 刷新当前页
+     * 刷新当前页；成功后清除未禁用勾选，保留禁用勾选
      */
     refresh,
 
